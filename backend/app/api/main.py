@@ -14,7 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from app.api import routes_chat, routes_meta
+from app.api import routes_chat, routes_jobs, routes_meta
 from app.api.deps import close_http
 from app.config import get_settings
 from app.jobs.base import JobFetchError, JobInputError
@@ -84,6 +84,7 @@ def create_app() -> FastAPI:
         )
 
     app.include_router(routes_chat.router)
+    app.include_router(routes_jobs.router)
     app.include_router(routes_meta.router)
     return app
 

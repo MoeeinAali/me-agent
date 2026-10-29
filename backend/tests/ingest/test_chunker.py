@@ -54,7 +54,18 @@ def test_explode_syllabus_topics() -> None:
         credits=3,
         topics=["نرمال‌سازی: 1NF؛ 2NF", "تراکنش"],
     )
-    drafts = {d.id: d for d in explode(record_with_body(), [course], {})}
+    payload = record_with_body().model_dump(mode="json")
+    payload["courses_taken"] = [
+        {
+            "id": "database-design",
+            "title": "Database Design",
+            "instructor": "M",
+            "grade": "20/20",
+            "syllabus_code": "40384",
+        }
+    ]
+    taken = Record.model_validate(payload)
+    drafts = {d.id: d for d in explode(taken, [course], {})}
     syllabus = drafts["syllabus:40384"]
     assert syllabus.path == "syllabus[40384]"
     assert [c.path for c in syllabus.chunks] == [
@@ -63,3 +74,9 @@ def test_explode_syllabus_topics() -> None:
     ]
     assert syllabus.chunks[0].lang == "fa"
     assert "Database Design" in syllabus.aliases
+
+
+def test_syllabus_of_courses_not_taken_is_not_ingested() -> None:
+    course = SyllabusCourse(code="40354", title_fa="طراحی الگوریتم‌ها", credits=3, topics=["x"])
+    drafts = {d.id for d in explode(record_with_body(), [course], {})}
+    assert "syllabus:40354" not in drafts

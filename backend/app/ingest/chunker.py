@@ -189,7 +189,10 @@ def explode(
         d = b.entity("faq", f.id, f"faq[{f.id}]", f.question, f)
         _add(d, "answer", f.answer)
 
-    for course in syllabus:
+    # Only courses Moeein took: a syllabus topic is evidence about him only through a course he
+    # passed. The rest of the program stays out of retrieval entirely.
+    taken = {c.syllabus_code for c in record.courses_taken if c.syllabus_code}
+    for course in (c for c in syllabus if c.code in taken):
         d = b.entity(
             "syllabus",
             course.code,

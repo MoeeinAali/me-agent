@@ -68,23 +68,32 @@ def _proof_for(path: str) -> Proof:
     return Proof(type="record")
 
 
-class _Collector:
-    def __init__(self) -> None:
+class EvidenceCollector:
+    def __init__(self, max_chars: int = MAX_EVIDENCE_CHARS, value_chars: int | None = None) -> None:
         self.bundle = EvidenceBundle()
+        self._max_chars = max_chars
+        self._value_chars = value_chars
         self._paths: set[str] = set()
         self._chars = 0
+        self._counts: dict[str, int] = {}
 
-    def add(self, item: Evidence) -> bool:
-        if item.path in self._paths or self._chars + len(item.value) > MAX_EVIDENCE_CHARS:
-            return False
+    def add(self, item: Evidence, prefix: str = "E") -> str | None:
+        """Number and keep an item; returns its id, or None if duplicate or over budget."""
+        if self._value_chars is not None and len(item.value) > self._value_chars:
+            item = item.model_copy(update={"value": item.value[: self._value_chars - 1] + "…"})
+        if item.path in self._paths or self._chars + len(item.value) > self._max_chars:
+            return None
         self._paths.add(item.path)
         self._chars += len(item.value)
-        self.bundle.evidence.append(
-            item.model_copy(update={"id": f"E{len(self.bundle.evidence) + 1}"})
-        )
-        return True
+        self._counts[prefix] = self._counts.get(prefix, 0) + 1
+        numbered = item.model_copy(update={"id": f"{prefix}{self._counts[prefix]}"})
+        self.bundle.evidence.append(numbered)
+        return numbered.id
 
-    def add_record(self, path: str, value: str) -> bool:
+    def id_for(self, path: str) -> str | None:
+        return next((e.id for e in self.bundle.evidence if e.path == path), None)
+
+    def add_record(self, path: str, value: str) -> str | None:
         return self.add(
             Evidence(
                 id="", path=path, value=value, source="record", trusted=True, proof=_proof_for(path)
@@ -104,7 +113,7 @@ async def gather_evidence(
     audience: Audience,
     on_evidence: Callable[[Evidence], Awaitable[None]] | None = None,
 ) -> EvidenceBundle:
-    collector = _Collector()
+    collector = EvidenceCollector()
 
     for target in targets:
         for path, value in await read_fields(deps.session, target.entity_id):
@@ -137,7 +146,7 @@ async def gather_evidence(
     return collector.bundle
 
 
-async def _live_tools(deps: Deps, targets: list[Candidate], collector: _Collector) -> None:
+async def _live_tools(deps: Deps, targets: list[Candidate], collector: EvidenceCollector) -> None:
     projects = {p.id: p for p in deps.record.projects}
     github = GitHubTool(deps.http, deps.cache, allowed_repos(deps.record), deps.github_token)
     links = LinkChecker(deps.http, deps.cache)

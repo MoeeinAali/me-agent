@@ -42,6 +42,14 @@ _TEMPLATES: dict[str, dict[str, str]] = {
         "en": "Which one do you mean: {options}?",
         "fa": "منظورتان کدام مورد است: {options}؟",
     },
+    "jobfit_summary": {
+        "en": "Evidence coverage for {title}: {pct}% — {band}. "
+        "{matched} of {total} requirements matched, {partial} partially, "
+        "{missing} without evidence.",
+        "fa": "پوشش شواهد برای {title}: {pct}٪ — {band}. "
+        "از {total} شرط، {matched} مورد تطابق کامل، {partial} مورد تطابق نسبی و {missing} مورد "
+        "بدون شاهد در رکورد.",
+    },
     "smalltalk": {
         "en": "Hi! What would you like to know about Moeein — a project, his experience, "
         "or whether he fits a role?",
@@ -52,6 +60,13 @@ _TEMPLATES: dict[str, dict[str, str]] = {
         "en": "Which role should I check? Share the job link or paste the job description.",
         "fa": "تناسب با کدام موقعیت را بررسی کنم؟ لینک آگهی را بفرستید یا متن آن را وارد کنید.",
     },
+}
+
+
+VERDICT_NAMES: dict[str, dict[str, str]] = {
+    "strong": {"en": "strong evidence of fit", "fa": "شواهد قوی برای تناسب"},
+    "partial": {"en": "partial evidence of fit", "fa": "تناسب نسبی"},
+    "weak": {"en": "weak evidence of fit", "fa": "شواهد ضعیف برای تناسب"},
 }
 
 

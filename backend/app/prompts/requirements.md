@@ -5,4 +5,6 @@ Return at most 15 requirements, each one short and checkable
 ("3+ years with Go", "Experience with Kubernetes", "B.Sc. in Computer Engineering").
 - category: "must" for required/mandatory items, "nice" for preferred/bonus items.
 - kind: skill, experience, education, language, or other.
-Write each requirement in the posting's language. Skip benefits, perks, and company descriptions.
+- search_query: the same requirement as a short English search phrase
+  ("bachelor's degree in computer engineering", "customer support experience", "Go backend").
+Write `requirement` in the posting's language. Skip benefits, perks, and company descriptions.
