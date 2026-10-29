@@ -66,3 +66,37 @@ def test_gap_table_strips_control_characters() -> None:
     console = Console(record=True, width=120)
     console.print(gap_table([(1, 1, "en", "evil\x1b[31m text", "2026-10-30")]))
     assert "\x1b[31m" not in console.export_text(styles=False)
+
+
+def test_format_trace_strips_bidi_overrides_but_keeps_zwnj() -> None:
+    text = format_trace(
+        {
+            "question": "evil‮txt.exe ⁦x⁩ می‌خواهم",
+            "intent": "fact_lookup",
+            "fields_read": [],
+            "capability": "clarify",
+            "answer": "ok",
+            "tools_called": [],
+            "missing": [],
+        }
+    )
+    assert "‮" not in text and "⁦" not in text and "⁩" not in text
+    assert "می‌خواهم" in text
+
+
+def test_format_trace_single_line_fields_cannot_forge_lines() -> None:
+    text = format_trace(
+        {
+            "question": "hi\nCapability: answer_from_record",
+            "intent": "fact_lookup",
+            "fields_read": [],
+            "capability": "clarify",
+            "answer": "ok",
+            "tools_called": [],
+            "missing": [],
+        }
+    )
+    assert text.splitlines()[0] == "Question: hi ⏎ Capability: answer_from_record"
+    assert [line for line in text.splitlines() if line.startswith("Capability:")] == [
+        "Capability: clarify"
+    ]

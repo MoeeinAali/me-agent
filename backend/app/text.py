@@ -2,8 +2,20 @@
 
 import unicodedata
 
+# Bidi embedding/override/isolate controls can reorder what an operator sees (Trojan Source).
+# ZWNJ/ZWJ (U+200C/U+200D) are kept: Persian spelling depends on them.
+_BIDI_CONTROLS = frozenset("‪‫‬‭‮⁦⁧⁨⁩‎‏؜")
+
 
 def printable(text: str) -> str:
-    """Drop control characters (ESC, BEL, C1 ...) but keep newlines/tabs and format characters
-    such as ZWNJ, which Persian spelling needs."""
-    return "".join(ch for ch in text if ch in "\n\t" or unicodedata.category(ch) != "Cc")
+    """Drop control characters (ESC, BEL, C1 ...) and bidi overrides; keep newlines and tabs."""
+    return "".join(
+        ch
+        for ch in text
+        if ch in "\n\t" or (unicodedata.category(ch) != "Cc" and ch not in _BIDI_CONTROLS)
+    )
+
+
+def one_line(text: str) -> str:
+    """For single-line fields: a newline can't start a new (forged) line."""
+    return printable(text).replace("\r", "").replace("\n", " ⏎ ")

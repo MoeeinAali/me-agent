@@ -67,11 +67,11 @@ def gap_table(rows: list[tuple[int, int, str, str, str]]) -> "Table":
     from rich.table import Table
     from rich.text import Text
 
-    from app.text import printable
+    from app.text import one_line
 
     table = Table("id", "count", "lang", "question", "last seen")
     for gap_id, count, lang, question, seen in rows:
-        table.add_row(str(gap_id), str(count), lang, Text(printable(question)), seen)
+        table.add_row(str(gap_id), str(count), lang, Text(one_line(question)), seen)
     return table
 
 

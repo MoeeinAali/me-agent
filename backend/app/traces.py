@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import TraceRow
-from app.text import printable
+from app.text import one_line, printable
 
 
 def format_trace(data: dict[str, Any]) -> str:
@@ -15,12 +15,12 @@ def format_trace(data: dict[str, Any]) -> str:
 
 
 def _format(data: dict[str, Any]) -> str:
-    fields = ", ".join(data["fields_read"]) or "(none)"
+    fields = ", ".join(one_line(f) for f in data["fields_read"]) or "(none)"
     lines = [
-        f"Question: {data['question']}",
-        f"Intent: {data['intent']}",
+        f"Question: {one_line(data['question'])}",
+        f"Intent: {one_line(data['intent'])}",
         f"Fields read: {fields}",
-        f"Capability: {data['capability']}",
+        f"Capability: {one_line(data['capability'])}",
     ]
     if data.get("tools_called"):
         tools = ", ".join(
@@ -28,7 +28,7 @@ def _format(data: dict[str, Any]) -> str:
         )
         lines.append(f"Tools: {tools}")
     if data.get("missing"):
-        lines.append(f"Missing: {', '.join(data['missing'])}")
+        lines.append(f"Missing: {', '.join(one_line(m) for m in data['missing'])}")
     answer = data["answer"].replace("\n", "\n        ")
     lines.append(f"Answer: {answer}")
     return "\n".join(lines)
