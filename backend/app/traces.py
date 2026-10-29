@@ -7,9 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import TraceRow
+from app.text import printable
 
 
 def format_trace(data: dict[str, Any]) -> str:
+    return printable(_format(data))
+
+
+def _format(data: dict[str, Any]) -> str:
     fields = ", ".join(data["fields_read"]) or "(none)"
     lines = [
         f"Question: {data['question']}",
