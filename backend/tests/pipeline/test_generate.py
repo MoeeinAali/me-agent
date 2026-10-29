@@ -36,7 +36,7 @@ def test_prompt_version_is_stable_hash() -> None:
 
 async def test_generate_prompt_contains_limits_and_no_raw_secrets(record: Record) -> None:
     llm = FakeLLM()
-    llm.script(GenerationOut(answer="ok", claims=[Claim(text="ok", evidence=["E1"])], missing=[]))
+    llm.script(GenerationOut(claims=[Claim(text="ok", evidence=["E1"])], missing=[]))
     understanding = Understanding(
         intent="project_summary",
         language="fa",
@@ -48,7 +48,7 @@ async def test_generate_prompt_contains_limits_and_no_raw_secrets(record: Record
     result, _usage, version = await generate(
         llm, get_settings(), understanding, "tech_lead", [ev("E1")], [], record.limits
     )
-    assert result.answer == "ok"
+    assert result.claims[0].text == "ok"
     system = llm.calls[0].system
     for action in record.limits.forbidden_actions:
         assert action in system

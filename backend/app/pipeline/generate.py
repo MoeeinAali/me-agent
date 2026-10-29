@@ -21,7 +21,8 @@ LANGUAGE_NAME = {"fa": "Persian (Farsi)", "en": "English"}
 
 
 class GenerationOut(BaseModel):
-    answer: str
+    """No free-form answer field: the visitor sees only claims that survive verification."""
+
     claims: list[Claim]
     missing: list[str]
 
