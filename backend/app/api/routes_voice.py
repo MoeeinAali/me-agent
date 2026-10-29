@@ -18,6 +18,10 @@ from app.pipeline.run import run_chat
 
 router = APIRouter(prefix="/v1", tags=["chat"])
 
+# Duration can't be read from some containers (webm, the browser default). Those get a byte cap
+# that bounds speech-to-text cost: ~80 s of Opus at the 32 kbps the web client records with.
+UNMEASURED_MAX_BYTES = 320_000
+
 AUDIO_TYPES = {
     "audio/webm",
     "audio/ogg",
@@ -62,12 +66,24 @@ async def voice(
     duration = await asyncio.to_thread(_duration_seconds, data)
     if duration is not None and duration > settings.max_audio_seconds:
         raise HTTPException(422, f"Audio is longer than {settings.max_audio_seconds} seconds.")
+    if duration is None and len(data) > UNMEASURED_MAX_BYTES:
+        raise HTTPException(
+            422,
+            "Could not read this recording's duration; recordings in this format must be under "
+            f"{UNMEASURED_MAX_BYTES // 1000} KB.",
+        )
 
     started = time.monotonic()
     transcript = (await deps.llm.transcribe(data, audio.filename or "audio")).strip()
     stt_call = ToolCall(name="stt", ok=True, latency_ms=int((time.monotonic() - started) * 1000))
     if not transcript:
         raise HTTPException(422, "We couldn't make out any speech in that recording.")
+    if len(transcript) > settings.max_message_chars:
+        raise HTTPException(
+            422,
+            f"The question is longer than {settings.max_message_chars} "
+            "characters; please ask a shorter one.",
+        )
 
     req = ChatRequest(message=transcript, audience=audience, conversation_id=conversation_id)
     response = await run_chat(req, "voice", deps, job_fit=job_fit_handler())

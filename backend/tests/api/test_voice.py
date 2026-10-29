@@ -84,3 +84,17 @@ async def test_voice_empty_transcript_422(client: httpx.AsyncClient, fake_llm: F
     fake_llm.transcript = "   "
     response = await client.post("/v1/voice", files={"audio": ("q.wav", wav(1), "audio/wav")})
     assert response.status_code == 422
+
+
+async def test_voice_unmeasurable_audio_has_a_small_byte_cap(client: httpx.AsyncClient) -> None:
+    response = await client.post(
+        "/v1/voice", files={"audio": ("q.webm", b"\x1a\x45\xdf\xa3" + b"0" * 400_000, "audio/webm")}
+    )
+    assert response.status_code == 422
+    assert "duration" in response.json()["detail"]
+
+
+async def test_voice_overlong_transcript_422(client: httpx.AsyncClient, fake_llm: FakeLLM) -> None:
+    fake_llm.transcript = "word " * 1000
+    response = await client.post("/v1/voice", files={"audio": ("q.wav", wav(2), "audio/wav")})
+    assert response.status_code == 422

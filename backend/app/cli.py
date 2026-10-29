@@ -172,5 +172,20 @@ def run_eval(
         raise typer.Exit(code=1)
 
 
+@app.command("traces")
+def traces(
+    capability: Annotated[str | None, typer.Option(help="Only this capability")] = None,
+    limit: Annotated[int, typer.Option(help="How many, newest first")] = 5,
+) -> None:
+    """Print recent traces in the assignment's report format."""
+    from app.traces import format_trace, latest_traces
+
+    async def go(session: AsyncSession) -> None:
+        for data in await latest_traces(session, capability, limit):
+            typer.echo(format_trace(data) + "\n")
+
+    with_session(go)
+
+
 if __name__ == "__main__":
     app()

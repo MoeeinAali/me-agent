@@ -43,6 +43,7 @@ JobFitHandler = Callable[["RunContext"], Awaitable[ChatResponse]]
 
 HISTORY_MESSAGES = 6
 MAX_CLARIFY_OPTIONS = 6
+MAX_TARGETS_PER_MENTION = 3
 _ORDINALS: list[set[str]] = [
     {"first", "1", "1st", "اولی", "اول", "یکمی"},
     {"second", "2", "2nd", "دومی", "دوم"},
@@ -138,11 +139,13 @@ async def _resolve_targets(deps: Deps, u: Understanding) -> _Resolution:
         named = [m for m in mentions if normalize(m) not in generic]
         return _Resolution(unknown=named[0] if named else None)
 
+    # Outside project summaries a name may legitimately match a few entities at once (the Zerang
+    # project and the Zerang job): read them all. Broad matches are left to hybrid search.
     targets: dict[str, Candidate] = {}
     for mention in u.entities:
         candidates = await resolve(deps.session, deps.llm, mention, None)
-        if len(candidates) == 1:
-            targets[candidates[0].entity_id] = candidates[0]
+        if len(candidates) <= MAX_TARGETS_PER_MENTION:
+            targets.update((c.entity_id, c) for c in candidates)
     return _Resolution(targets=list(targets.values()))
 
 
