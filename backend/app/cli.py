@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import Awaitable, Callable
+from datetime import date
 from typing import Annotated
 
 import typer
@@ -13,6 +14,8 @@ from app.ingest.ingest import ingest as run_ingest
 from app.llm.client import get_llm
 
 app = typer.Typer(no_args_is_help=True, help="me-agent operations")
+gaps_app = typer.Typer(help="Questions the record could not answer")
+app.add_typer(gaps_app, name="gaps")
 
 
 @app.callback()
@@ -54,6 +57,102 @@ def ingest(
         )
 
     with_session(go)
+
+
+@gaps_app.callback(invoke_without_command=True)
+def gaps(ctx: typer.Context) -> None:
+    """List open gaps, most-asked first."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from rich.console import Console
+    from rich.table import Table
+
+    from app.gaps.manage import list_gaps
+
+    async def go(session: AsyncSession) -> None:
+        table = Table("id", "count", "lang", "question", "last seen")
+        for gap in await list_gaps(session):
+            table.add_row(
+                str(gap.id),
+                str(gap.count),
+                gap.language,
+                gap.question,
+                gap.last_seen.strftime("%Y-%m-%d"),
+            )
+        Console().print(table)
+
+    with_session(go)
+
+
+@gaps_app.command("answer")
+def gaps_answer(
+    gap_id: int,
+    text: str,
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Show the FAQ entry only")] = False,
+) -> None:
+    """Add the answer to data/record.json as a FAQ entry and make it searchable now."""
+    from app.gaps.manage import answer_gap
+
+    async def go(session: AsyncSession) -> None:
+        result = await answer_gap(
+            session,
+            get_llm(),
+            get_settings().data_dir,
+            gap_id,
+            text,
+            today=date.today().isoformat(),
+            dry_run=dry_run,
+        )
+        typer.echo(result.preview)
+        if dry_run:
+            typer.echo("dry run: nothing written")
+        else:
+            typer.echo(
+                f"added {result.faq_id} to data/record.json and embedded it. "
+                "Commit data/record.json so the next deploy keeps it."
+            )
+
+    with_session(go)
+
+
+@gaps_app.command("ignore")
+def gaps_ignore(gap_id: int) -> None:
+    """Close a gap without answering it (e.g. a topic Moeein won't publish)."""
+    from app.gaps.manage import ignore_gap
+
+    with_session(lambda session: ignore_gap(session, gap_id))
+    typer.echo(f"gap {gap_id} ignored")
+
+
+@app.command("eval")
+def run_eval(
+    subset: Annotated[str | None, typer.Option(help="Only cases tagged with this subset")] = None,
+    judge: Annotated[bool, typer.Option(help="Also run the LLM groundedness judge")] = True,
+    min_pass: Annotated[float, typer.Option(help="Fail below this pass rate")] = 0.85,
+) -> None:
+    """Run the eval suite against the real model; exit 1 if the pass rate is too low."""
+    import httpx
+
+    from app.api.deps import build_deps, get_record
+    from app.evals.runner import run_suite
+
+    async def go(session: AsyncSession) -> float:
+        async with httpx.AsyncClient() as http:
+            deps = build_deps(session, get_llm(), get_record(), get_settings(), http)
+            run, results = await run_suite(deps, session, subset, judge)
+        for result in results:
+            mark = "PASS" if result.passed else "FAIL"
+            typer.echo(
+                f"{mark} [{result.case.category}] {result.case.id}: " + "; ".join(result.failures)
+            )
+        for category, counts in run.summary.items():
+            typer.echo(f"{category:>22}: {counts['passed']}/{counts['total']}")
+        rate = run.passed / run.total if run.total else 0.0
+        typer.echo(f"overall: {run.passed}/{run.total} = {rate:.0%} (prompt {run.prompt_version})")
+        return rate
+
+    if with_session(go) < min_pass:
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

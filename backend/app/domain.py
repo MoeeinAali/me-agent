@@ -24,7 +24,7 @@ Intent = Literal[
 ]
 Audience = Literal["recruiter", "tech_lead", "professor", "general"]
 Lang = Literal["fa", "en"]
-Channel = Literal["http", "sse", "voice", "mcp"]
+Channel = Literal["http", "sse", "voice", "mcp", "eval"]
 EvidenceSource = Literal["record", "github", "hrcando", "job_text", "link_check"]
 
 

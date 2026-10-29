@@ -1,0 +1,11 @@
+Senior Frontend Engineer — Product Platform (Tehran, hybrid)
+
+Requirements
+- 3+ years building production web apps with React and Next.js (SSR/SSG)
+- Strong TypeScript
+- Experience with state management (Zustand, Redux or similar) and data fetching (TanStack Query)
+- Experience with PWAs and Service Workers
+- Familiarity with CI/CD and Docker
+Nice to have
+- Experience with Go or Node.js backends
+- Monitoring with Prometheus/Grafana

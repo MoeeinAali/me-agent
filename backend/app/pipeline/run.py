@@ -321,7 +321,8 @@ async def run_chat(
             return await _clarify(ctx, resolution.clarify)
         if resolution.unknown:
             missing = [resolution.unknown]
-            await record_gap(deps.session, deps.llm, req.message, u.language, "unknown entity")
+            if channel != "eval":
+                await record_gap(deps.session, deps.llm, req.message, u.language, "unknown entity")
             return await finish(
                 ctx,
                 answer=compose_answer([], missing, u.language),
@@ -365,7 +366,7 @@ async def run_chat(
     answer = compose_answer(result.claims_kept, out.missing, u.language)
     await emit("stage", {"name": "verify", "status": "done"})
 
-    if capability == "refuse_unpublished" or out.missing:
+    if channel != "eval" and (capability == "refuse_unpublished" or out.missing):
         reason = "no supporting evidence" if capability == "refuse_unpublished" else "partial"
         await record_gap(deps.session, deps.llm, req.message, u.language, reason)
     return await finish(

@@ -1,0 +1,10 @@
+Backend Engineer (Go)
+
+Must have:
+- 2+ years of Go in production
+- PostgreSQL and Redis
+- Kafka or another message broker
+- Kubernetes deployments
+Nice to have:
+- gRPC
+- Experience mentoring juniors

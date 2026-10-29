@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     llm_model_embed: str = "text-embedding-3-small"
     llm_model_stt: str = "whisper-1"
     llm_model_tts: str = "gpt-4o-mini-tts"
-    llm_model_judge: str = "claude-sonnet-4-6"
+    llm_model_judge: str = "gemini-2.5-flash"
     llm_timeout_seconds: float = 60.0
     embed_dim: int = 1536
 

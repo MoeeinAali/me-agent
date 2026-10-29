@@ -1,0 +1,52 @@
+name: Eval
+
+# Runs the eval smoke subset against the real model. Manual only: it spends API credit.
+on:
+  workflow_dispatch:
+    inputs:
+      subset:
+        description: "Case subset (empty = all cases)"
+        default: smoke
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: me_agent
+          POSTGRES_PASSWORD: me_agent
+          POSTGRES_DB: me_agent
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U me_agent" --health-interval 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://me_agent:me_agent@localhost:5432/me_agent
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      DATA_DIR: ../data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.0"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv python install 3.12
+      - run: uv sync --frozen --no-dev
+      - run: uv run alembic upgrade head
+      - run: uv run me-agent ingest
+      - name: Run evals
+        run: |
+          if [ -n "${{ inputs.subset }}" ]; then
+            uv run me-agent eval --subset "${{ inputs.subset }}"
+          else
+            uv run me-agent eval
+          fi

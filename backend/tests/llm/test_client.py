@@ -140,3 +140,13 @@ async def test_fake_structured_returns_scripted_in_order() -> None:
     assert fake.calls[0].schema is Answer
     with pytest.raises(AssertionError, match="no scripted Answer"):
         await fake.structured("m", "s", [], Answer)
+
+
+async def test_structured_accepts_code_fenced_json() -> None:
+    fenced = '```json\n{"answer": "ok", "note": null}\n```'
+    rec = Recorder(sequence(completion(fenced)))
+    out, _ = await OpenAICompatLLM(get_settings(), rec.client()).structured(
+        "claude-sonnet-4-6", "sys", [{"role": "user", "content": "hi"}], Answer
+    )
+    assert out.answer == "ok"
+    assert len(rec.requests) == 1

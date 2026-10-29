@@ -1,8 +1,9 @@
 """Starter questions: a fixed set per audience and language, plus what visitors ask most."""
 
+import re
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import TraceRow
@@ -10,6 +11,10 @@ from app.domain import Audience, Lang
 
 POPULAR_DAYS = 30
 POPULAR_COUNT = 2
+# Visitor text is shown to other visitors only when many people asked it and it looks harmless.
+POPULAR_MIN_CONVERSATIONS = 3
+POPULAR_MAX_CHARS = 100
+_UNSAFE = re.compile(r"https?://|www\.|@|<|>|\.(com|ir|net|org|io)\b", re.I)
 
 STATIC: dict[str, dict[str, list[str]]] = {
     "recruiter": {
@@ -78,12 +83,18 @@ async def suggestions(audience: Audience, lang: Lang, session: AsyncSession) -> 
         .where(
             TraceRow.created_at >= since,
             TraceRow.language == lang,
+            TraceRow.channel != "eval",
             TraceRow.capability.in_(["answer_from_record", "answer_from_api"]),
         )
         .group_by(TraceRow.question)
-        .order_by(func.count().desc())
-        .limit(POPULAR_COUNT)
+        .having(func.count(distinct(TraceRow.conversation_id)) >= POPULAR_MIN_CONVERSATIONS)
+        .order_by(func.count(distinct(TraceRow.conversation_id)).desc())
+        .limit(POPULAR_COUNT * 5)
     )
     static = STATIC[audience][lang]
-    extra = [q for q in popular if q not in static]
+    extra = [
+        q
+        for q in popular
+        if q not in static and len(q) <= POPULAR_MAX_CHARS and not _UNSAFE.search(q)
+    ][:POPULAR_COUNT]
     return [*static, *extra]

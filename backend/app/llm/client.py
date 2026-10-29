@@ -5,6 +5,7 @@ GapGPT is OpenAI-compatible, so any provider with the same API works by changing
 
 import copy
 import json
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Protocol, TypeVar
@@ -62,6 +63,15 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
     return schema
 
 
+_FENCE = re.compile(r"^\s*```(?:json)?\s*\n?(.*?)\n?```\s*$", re.DOTALL)
+
+
+def _strip_fence(content: str) -> str:
+    """Some models behind OpenAI-compatible gateways wrap JSON in a markdown code fence."""
+    match = _FENCE.match(content)
+    return match.group(1) if match else content
+
+
 class OpenAICompatLLM:
     def __init__(self, settings: Settings, http_client: httpx2.AsyncClient | None = None) -> None:
         self._settings = settings
@@ -98,7 +108,7 @@ class OpenAICompatLLM:
                 usage += Usage(response.usage.prompt_tokens, response.usage.completion_tokens)
             content = response.choices[0].message.content or ""
             try:
-                return schema.model_validate_json(content), usage
+                return schema.model_validate_json(_strip_fence(content)), usage
             except ValidationError as exc:
                 last_error = str(exc)
                 conversation = [
