@@ -72,3 +72,45 @@ class BodySizeLimit:
             }
         )
         await send({"type": "http.response.body", "body": body})
+
+
+class RateLimit:
+    """Per-client-IP moving-window limit for every route, including mounted apps (MCP).
+
+    The client IP comes from the ASGI scope, which uvicorn fills from X-Forwarded-For only for
+    trusted proxies (FORWARDED_ALLOW_IPS). Health checks are exempt.
+    """
+
+    EXEMPT = frozenset({"/healthz", "/readyz"})
+
+    def __init__(self, app: ASGIApp, limit: str) -> None:
+        from limits import parse
+        from limits.aio.storage import MemoryStorage
+        from limits.aio.strategies import MovingWindowRateLimiter
+
+        self.app = app
+        self.item = parse(limit)
+        self.limiter = MovingWindowRateLimiter(MemoryStorage())
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or scope["path"] in self.EXEMPT:
+            await self.app(scope, receive, send)
+            return
+        client = scope.get("client")
+        key = client[0] if client else "unknown"
+        if await self.limiter.hit(self.item, key):
+            await self.app(scope, receive, send)
+            return
+        body = b'{"detail":"Too many requests. Please slow down."}'
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 429,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"content-length", str(len(body)).encode()),
+                    (b"retry-after", b"60"),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": body})

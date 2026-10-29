@@ -9,14 +9,17 @@ import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 
-from app.api import routes_chat, routes_jobs, routes_meta, routes_stream, routes_suggest
+from app.api import (
+    routes_chat,
+    routes_jobs,
+    routes_meta,
+    routes_stream,
+    routes_suggest,
+    routes_voice,
+)
 from app.api.deps import close_http
-from app.api.limits import UPLOAD_OVERHEAD, BodySizeLimit
+from app.api.limits import UPLOAD_OVERHEAD, BodySizeLimit, RateLimit
 from app.config import get_settings
 from app.jobs.base import JobFetchError, JobInputError
 from app.logging import configure_logging
@@ -46,10 +49,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
-    app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(RateLimit, limit=settings.rate_limit)
     app.add_middleware(
         BodySizeLimit,
         limits={
@@ -103,6 +103,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_jobs.router)
     app.include_router(routes_stream.router)
     app.include_router(routes_suggest.router)
+    app.include_router(routes_voice.router)
     app.include_router(routes_meta.router)
     return app
 
