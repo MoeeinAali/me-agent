@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from testcontainers.community.postgres import PostgresContainer
 
-BACKEND = Path(__file__).resolve().parents[2]
+BACKEND = Path(__file__).resolve().parents[1]
 
 # Ryuk (the container reaper) is another image pull; the `with` block below cleans up itself.
 os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")

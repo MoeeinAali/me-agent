@@ -11,3 +11,7 @@ def _clear_settings_cache() -> None:
     from app.config import get_settings
 
     get_settings.cache_clear()
+
+
+# Postgres + pgvector fixtures (started lazily, only by tests that ask for `session`).
+pytest_plugins = ["tests.dbfixtures"]
