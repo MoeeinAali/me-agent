@@ -1,0 +1,531 @@
+{
+  "$defs": {
+    "Claim": {
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "text",
+        "evidence"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "Evidence": {
+      "properties": {
+        "id": {
+          "description": "E1, E2, … — the handle claims cite",
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "description": "Where the value came from, e.g. projects[comeback].tech",
+          "title": "Path",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "record",
+            "github",
+            "hrcando",
+            "job_text",
+            "link_check"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "trusted": {
+          "description": "False for job text and READMEs: never evidence about Moeein",
+          "title": "Trusted",
+          "type": "boolean"
+        },
+        "proof": {
+          "$ref": "#/$defs/Proof"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "value",
+        "source",
+        "trusted",
+        "proof"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "JobSummary": {
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "company": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "JobSummary",
+      "type": "object"
+    },
+    "Proof": {
+      "description": "How a visitor can check an evidence item themselves.",
+      "properties": {
+        "type": {
+          "enum": [
+            "record",
+            "github_repo",
+            "github_commit",
+            "live_url",
+            "syllabus"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checked At"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Proof",
+      "type": "object"
+    },
+    "Scorecard": {
+      "properties": {
+        "job": {
+          "$ref": "#/$defs/JobSummary"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/ScorecardRow"
+          },
+          "title": "Rows",
+          "type": "array"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        },
+        "verdict": {
+          "enum": [
+            "strong",
+            "partial",
+            "weak"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job",
+        "rows",
+        "coverage",
+        "verdict"
+      ],
+      "title": "Scorecard",
+      "type": "object"
+    },
+    "ScorecardRow": {
+      "properties": {
+        "requirement": {
+          "title": "Requirement",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "must",
+            "nice"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "skill",
+            "experience",
+            "education",
+            "language",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "matched",
+            "partial",
+            "no_evidence"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "requirement",
+        "category",
+        "kind",
+        "status",
+        "evidence"
+      ],
+      "title": "ScorecardRow",
+      "type": "object"
+    },
+    "ToolCall": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "latency_ms": {
+          "title": "Latency Ms",
+          "type": "integer"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "name",
+        "ok",
+        "latency_ms"
+      ],
+      "title": "ToolCall",
+      "type": "object"
+    },
+    "Trace": {
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "fa",
+            "en"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "intent": {
+          "enum": [
+            "project_summary",
+            "reading_suggestion",
+            "job_fit",
+            "fact_lookup",
+            "out_of_scope",
+            "smalltalk"
+          ],
+          "title": "Intent",
+          "type": "string"
+        },
+        "audience": {
+          "enum": [
+            "recruiter",
+            "tech_lead",
+            "professor",
+            "general"
+          ],
+          "title": "Audience",
+          "type": "string"
+        },
+        "channel": {
+          "enum": [
+            "http",
+            "sse",
+            "voice",
+            "mcp"
+          ],
+          "title": "Channel",
+          "type": "string"
+        },
+        "fields_read": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields Read",
+          "type": "array"
+        },
+        "tools_called": {
+          "items": {
+            "$ref": "#/$defs/ToolCall"
+          },
+          "title": "Tools Called",
+          "type": "array"
+        },
+        "capability": {
+          "enum": [
+            "answer_from_record",
+            "answer_from_api",
+            "clarify",
+            "refuse_unpublished",
+            "refuse_action",
+            "out_of_scope"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "missing": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing",
+          "type": "array"
+        },
+        "latency_ms": {
+          "title": "Latency Ms",
+          "type": "integer"
+        },
+        "tokens_in": {
+          "title": "Tokens In",
+          "type": "integer"
+        },
+        "tokens_out": {
+          "title": "Tokens Out",
+          "type": "integer"
+        },
+        "prompt_version": {
+          "title": "Prompt Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "question",
+        "language",
+        "intent",
+        "audience",
+        "channel",
+        "fields_read",
+        "tools_called",
+        "capability",
+        "answer",
+        "missing",
+        "latency_ms",
+        "tokens_in",
+        "tokens_out",
+        "prompt_version"
+      ],
+      "title": "Trace",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "conversation_id": {
+      "format": "uuid",
+      "title": "Conversation Id",
+      "type": "string"
+    },
+    "answer": {
+      "title": "Answer",
+      "type": "string"
+    },
+    "capability": {
+      "enum": [
+        "answer_from_record",
+        "answer_from_api",
+        "clarify",
+        "refuse_unpublished",
+        "refuse_action",
+        "out_of_scope"
+      ],
+      "title": "Capability",
+      "type": "string"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "scorecard": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Scorecard"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "clarify_options": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Clarify Options"
+    },
+    "transcript": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Transcript"
+    },
+    "audio_b64": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Audio B64"
+    },
+    "trace": {
+      "$ref": "#/$defs/Trace"
+    }
+  },
+  "required": [
+    "conversation_id",
+    "answer",
+    "capability",
+    "claims",
+    "evidence",
+    "trace"
+  ],
+  "title": "ChatResponse",
+  "type": "object"
+}
