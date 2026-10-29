@@ -77,14 +77,14 @@
       "title": "Data and Network Security",
       "instructor": "Dr. M. Kharrazi and Dr. M. Amini",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40441"
     },
     {
       "id": "agile-software-development",
       "title": "Agile Software Development",
       "instructor": "Dr. R. Ramsin",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40475"
     },
     {
       "id": "microservice-systems",
@@ -98,56 +98,56 @@
       "title": "Software Engineering",
       "instructor": "Dr. M. Rivadeh",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40474"
     },
     {
       "id": "artificial-intelligence",
       "title": "Artificial Intelligence",
       "instructor": "Mr. M. Samiei and Mr. M. Fereidooni",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40417"
     },
     {
       "id": "introduction-to-machine-and-deep-learning",
       "title": "Introduction to Machine and Deep Learning",
       "instructor": "Dr. A. Sharifi-Zarchi",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40717"
     },
     {
       "id": "database-design",
       "title": "Database Design",
       "instructor": "Mr. M. Akhi",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40384"
     },
     {
       "id": "system-analysis-and-design",
       "title": "System Analysis and Design",
       "instructor": "Dr. M. Ramezani",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40418"
     },
     {
       "id": "web-programming",
       "title": "Web Programming",
       "instructor": "Dr. A. Abrishami",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40419"
     },
     {
       "id": "mobile-programming",
       "title": "Mobile Programming",
       "instructor": "Mr. M. Ahmadinik",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40429"
     },
     {
       "id": "advanced-programming",
       "title": "Advanced Programming",
       "instructor": "Mr. H. Hosseinkhani",
       "grade": "20/20",
-      "syllabus_code": null
+      "syllabus_code": "40244"
     }
   ],
   "teaching": [
