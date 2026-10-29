@@ -57,11 +57,8 @@ def test_compose_answer_appends_missing_note_in_question_language() -> None:
 
 
 def test_compose_answer_with_no_claims_is_fixed_refusal() -> None:
-    text = compose_answer([], ["salary"], "en")
-    assert (
-        text
-        == "That isn't in Moeein's published record, so I can't answer it. Not in the record: salary."
-    )
+    refusal = "That isn't in Moeein's published record, so I can't answer it."
+    assert compose_answer([], ["salary"], "en") == f"{refusal} Not in the record: salary."
 
 
 def test_compose_answer_bounds_missing_items() -> None:
