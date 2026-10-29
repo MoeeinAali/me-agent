@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Protocol, TypeVar
 
-import httpx
+import httpx2
 from openai import AsyncOpenAI
 from pydantic import BaseModel, ValidationError
 
@@ -63,7 +63,7 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
 
 
 class OpenAICompatLLM:
-    def __init__(self, settings: Settings, http_client: httpx.AsyncClient | None = None) -> None:
+    def __init__(self, settings: Settings, http_client: httpx2.AsyncClient | None = None) -> None:
         self._settings = settings
         self._client = AsyncOpenAI(
             base_url=settings.llm_base_url,
