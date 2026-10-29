@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import TraceRow
-from app.text import one_line, printable
+from app.text import indented, one_line, printable
 
 
 def format_trace(data: dict[str, Any]) -> str:
@@ -29,7 +29,7 @@ def _format(data: dict[str, Any]) -> str:
         lines.append(f"Tools: {tools}")
     if data.get("missing"):
         lines.append(f"Missing: {', '.join(one_line(m) for m in data['missing'])}")
-    answer = data["answer"].replace("\n", "\n        ")
+    answer = indented(data["answer"], "        ")
     lines.append(f"Answer: {answer}")
     return "\n".join(lines)
 

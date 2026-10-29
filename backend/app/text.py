@@ -18,4 +18,9 @@ def printable(text: str) -> str:
 
 def one_line(text: str) -> str:
     """For single-line fields: a newline can't start a new (forged) line."""
-    return printable(text).replace("\r", "").replace("\n", " ⏎ ")
+    return " ⏎ ".join(printable(text).splitlines())
+
+
+def indented(text: str, indent: str) -> str:
+    """Multi-line field: every line boundary (incl. U+2028/U+2029) continues under ``indent``."""
+    return f"\n{indent}".join(printable(text).splitlines())
