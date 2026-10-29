@@ -1,12 +1,13 @@
 import json
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import httpx
 import pytest
 import respx
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_http, get_record
+from app.api.deps import get_http, get_record, get_session_factory
 from app.api.main import create_app
 from app.db.session import get_session
 from app.llm.client import get_llm
@@ -43,7 +44,12 @@ async def _client(session: AsyncSession, llm: FakeLLM, record: Record) -> httpx.
     async def session_override() -> AsyncIterator[AsyncSession]:
         yield session
 
+    @asynccontextmanager
+    async def factory() -> AsyncIterator[AsyncSession]:
+        yield session
+
     outbound = httpx.AsyncClient()
+    app.dependency_overrides[get_session_factory] = lambda: factory
     app.dependency_overrides[get_session] = session_override
     app.dependency_overrides[get_llm] = lambda: llm
     app.dependency_overrides[get_record] = lambda: record

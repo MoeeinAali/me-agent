@@ -35,19 +35,26 @@ class FakeLLM:
     speech: bytes | Exception = b"ID3fake"
     calls: list[FakeCall] = field(default_factory=list)
     _queues: dict[type[BaseModel], list[Any]] = field(default_factory=lambda: defaultdict(list))
+    _failures: list[Exception] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         for schema, outputs in self.scripted.items():
             self._queues[schema].extend(outputs)
 
-    def script(self, *outputs: BaseModel) -> None:
+    def script(self, *outputs: BaseModel | Exception) -> None:
+        """Queue outputs per schema; an exception is raised by the next structured call."""
         for output in outputs:
-            self._queues[type(output)].append(output)
+            if isinstance(output, Exception):
+                self._failures.append(output)
+            else:
+                self._queues[type(output)].append(output)
 
     async def structured(
         self, model: str, system: str, messages: list[dict[str, str]], schema: type[T]
     ) -> tuple[T, Usage]:
         self.calls.append(FakeCall(model, system, messages, schema))
+        if self._failures:
+            raise self._failures.pop(0)
         queue = self._queues.get(schema)
         assert queue, f"no scripted {schema.__name__} left"
         output = queue.pop(0)

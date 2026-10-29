@@ -22,6 +22,11 @@ def _sessionmaker() -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(engine_from(get_settings()), expire_on_commit=False)
 
 
+def session_factory() -> async_sessionmaker[AsyncSession]:
+    """For work that outlives a request dependency (streaming responses, background jobs)."""
+    return _sessionmaker()
+
+
 async def get_session() -> AsyncIterator[AsyncSession]:
     """FastAPI dependency: one session per request."""
     async with _sessionmaker()() as session:

@@ -14,8 +14,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from app.api import routes_chat, routes_jobs, routes_meta
+from app.api import routes_chat, routes_jobs, routes_meta, routes_stream, routes_suggest
 from app.api.deps import close_http
+from app.api.limits import UPLOAD_OVERHEAD, BodySizeLimit
 from app.config import get_settings
 from app.jobs.base import JobFetchError, JobInputError
 from app.logging import configure_logging
@@ -43,6 +44,13 @@ def create_app() -> FastAPI:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
     app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(
+        BodySizeLimit,
+        limits={
+            "/v1/jobs/fit": settings.max_pdf_bytes + UPLOAD_OVERHEAD,
+            "/v1/voice": settings.max_audio_bytes + UPLOAD_OVERHEAD,
+        },
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -85,6 +93,8 @@ def create_app() -> FastAPI:
 
     app.include_router(routes_chat.router)
     app.include_router(routes_jobs.router)
+    app.include_router(routes_stream.router)
+    app.include_router(routes_suggest.router)
     app.include_router(routes_meta.router)
     return app
 
