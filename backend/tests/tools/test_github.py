@@ -69,8 +69,16 @@ async def test_github_repo_evidence() -> None:
     assert result.ok
     by_path = {e.path: e for e in result.evidence}
     assert by_path[f"github[{REPO}].languages"].value == "TypeScript 90%, CSS 10%"
-    assert by_path[f"github[{REPO}].latest_commit"].proof.type == "github_commit"
-    assert "feat: drag and drop" in by_path[f"github[{REPO}].latest_commit"].value
+    latest = by_path[f"github[{REPO}].latest_commit"]
+    assert latest.proof.type == "github_commit"
+    assert latest.trusted is True
+    assert latest.value == "latest commit on 2026-02-20"
+    # Free text written by anyone with push access is never trusted evidence.
+    message = by_path[f"github[{REPO}].latest_commit_message"]
+    assert message.trusted is False and "feat: drag and drop" in message.value
+    assert by_path[f"github[{REPO}].description"].trusted is False
+    assert "Kanban board" not in by_path[f"github[{REPO}].summary"].value
+    assert by_path[f"github[{REPO}].summary"].trusted is True
     assert by_path[f"github[{REPO}].readme"].trusted is False
     assert all(e.source == "github" for e in result.evidence)
     assert by_path[f"github[{REPO}].languages"].trusted is True

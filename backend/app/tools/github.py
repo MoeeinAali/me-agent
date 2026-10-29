@@ -138,66 +138,52 @@ class GitHubTool:
 
     @staticmethod
     def _repo_evidence(repo: str, payload: dict[str, Any]) -> list[Evidence]:
-        meta, url = payload["meta"], payload["meta"].get("html_url", f"https://github.com/{repo}")
+        """Structured fields (dates, counts, language shares) are trusted. Free text (description,
+        commit messages, README) is written by anyone with push access, so it is untrusted."""
+        meta = payload["meta"]
+        url = meta.get("html_url", f"https://github.com/{repo}")
         now = datetime.now().astimezone()
         proof = Proof(type="github_repo", url=url, status="up", checked_at=now)
         base = f"github[{repo}]"
-        items = [
-            Evidence(
+
+        def item(field: str, value: str, trusted: bool, item_proof: Proof = proof) -> Evidence:
+            return Evidence(
                 id="",
-                path=f"{base}.summary",
+                path=f"{base}.{field}",
+                value=value,
                 source="github",
-                trusted=True,
-                proof=proof,
-                value=f"{repo}: {meta.get('description') or 'no description'}; "
-                f"created {meta.get('created_at', '')[:10]}, "
+                trusted=trusted,
+                proof=item_proof,
+            )
+
+        items = [
+            item(
+                "summary",
+                f"{repo}: created {meta.get('created_at', '')[:10]}, "
                 f"last push {meta.get('pushed_at', '')[:10]}, "
                 f"{meta.get('stargazers_count', 0)} stars",
+                trusted=True,
             )
         ]
+        if meta.get("description"):
+            items.append(item("description", meta["description"], trusted=False))
         languages: dict[str, int] = payload["languages"]
         total = sum(languages.values())
         if total:
-            share = ", ".join(
-                f"{name} {round(100 * size / total)}%"
-                for name, size in sorted(languages.items(), key=lambda kv: -kv[1])
-            )
-            items.append(
-                Evidence(
-                    id="",
-                    path=f"{base}.languages",
-                    value=share,
-                    source="github",
-                    trusted=True,
-                    proof=proof,
-                )
-            )
+            ranked = sorted(languages.items(), key=lambda kv: -kv[1])
+            share = ", ".join(f"{name} {round(100 * size / total)}%" for name, size in ranked)
+            items.append(item("languages", share, trusted=True))
         if payload["commits"]:
             commit = payload["commits"][0]
-            items.append(
-                Evidence(
-                    id="",
-                    path=f"{base}.latest_commit",
-                    source="github",
-                    trusted=True,
-                    value=f"{commit['commit']['author']['date'][:10]}: "
-                    f"{commit['commit']['message'].splitlines()[0]}",
-                    proof=Proof(
-                        type="github_commit", url=commit["html_url"], status="up", checked_at=now
-                    ),
-                )
+            commit_proof = Proof(
+                type="github_commit", url=commit["html_url"], status="up", checked_at=now
             )
+            date = commit["commit"]["author"]["date"][:10]
+            items.append(item("latest_commit", f"latest commit on {date}", True, commit_proof))
+            message = commit["commit"]["message"].splitlines()[0]
+            items.append(item("latest_commit_message", message, False, commit_proof))
         if payload["readme"]:
-            items.append(
-                Evidence(
-                    id="",
-                    path=f"{base}.readme",
-                    value=payload["readme"],
-                    source="github",
-                    trusted=False,
-                    proof=proof,
-                )
-            )
+            items.append(item("readme", payload["readme"], trusted=False))
         return items
 
     @staticmethod
