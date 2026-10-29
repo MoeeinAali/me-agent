@@ -504,7 +504,8 @@
       "github_repo": null,
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 3
     },
     {
       "id": "arcadia",
@@ -551,7 +552,8 @@
       "github_repo": null,
       "github_org": "MS-Arcadia",
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 4
     },
     {
       "id": "comeback",
@@ -600,7 +602,8 @@
       "github_repo": null,
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 1
     },
     {
       "id": "zerang",
@@ -646,7 +649,8 @@
       "github_repo": null,
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 2
     },
     {
       "id": "sakena",
@@ -688,7 +692,8 @@
       "github_repo": "ASD-SAKENA/SAKENA-Frontend",
       "github_org": null,
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "miangpt",
@@ -732,7 +737,8 @@
       "github_repo": null,
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 6
     },
     {
       "id": "la-noire",
@@ -773,7 +779,8 @@
       "github_repo": "moeeinaali/la-noire",
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 7
     },
     {
       "id": "sharifac-rag",
@@ -811,7 +818,8 @@
       "github_repo": "MoeeinAali/SharifAC-RAG-Chatbot",
       "github_org": null,
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "wss-website",
@@ -849,7 +857,8 @@
       "github_repo": "Winter-Seminar-Series/WSS-site",
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 8
     },
     {
       "id": "laklak",
@@ -887,7 +896,8 @@
       "github_repo": null,
       "github_org": "SAD-LakLak",
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "byte-publication",
@@ -921,7 +931,8 @@
       "github_repo": "Byte-Magazine/byte-new-website",
       "github_org": null,
       "course": null,
-      "featured": true
+      "featured": true,
+      "order": 5
     },
     {
       "id": "kanban-board",
@@ -956,7 +967,8 @@
       "github_repo": "moeeinaali/kanban-board",
       "github_org": null,
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "creepy-gopher",
@@ -989,7 +1001,8 @@
       "github_repo": null,
       "github_org": "Creepy-Gopher",
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "simple-container",
@@ -1021,7 +1034,8 @@
       "github_repo": "moeeinaali/simple-container",
       "github_org": null,
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "riml-website",
@@ -1053,7 +1067,8 @@
       "github_repo": "rohban-lab/RIML-Frontend",
       "github_org": null,
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     },
     {
       "id": "tictactoe",
@@ -1079,7 +1094,8 @@
       "github_repo": "MoeeinAali/Android-TicTacToe",
       "github_org": null,
       "course": null,
-      "featured": false
+      "featured": false,
+      "order": null
     }
   ],
   "service": [

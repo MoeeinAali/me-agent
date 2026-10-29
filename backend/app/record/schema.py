@@ -140,6 +140,7 @@ class Project(RecordModel):
     github_org: str | None = None
     course: str | None = None
     featured: bool = False
+    order: int | None = Field(default=None, description="Rank among featured (1 = first)")
 
 
 class Service(RecordModel):

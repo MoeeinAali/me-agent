@@ -82,6 +82,7 @@ def _project(site_project: dict[str, Any], content_dir: Path) -> dict[str, Any]:
         "github_repo": f"{repo.group(1)}/{repo.group(2)}" if repo else None,
         "github_org": org.group(1) if org else None,
         "featured": site_project.get("featured", False),
+        "order": site_project.get("order"),
     }
     slug = site_project.get("contentSlug")
     if slug and (content_dir / f"{slug}.md").exists():

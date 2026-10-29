@@ -758,6 +758,20 @@
           "title": "Featured",
           "type": "boolean",
           "x-visibility": "public"
+        },
+        "order": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rank among featured (1 = first)",
+          "title": "Order",
+          "x-visibility": "public"
         }
       },
       "required": [
