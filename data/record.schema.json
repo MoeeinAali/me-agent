@@ -1,0 +1,1105 @@
+{
+  "$defs": {
+    "Book": {
+      "additionalProperties": false,
+      "description": "A book Moeein has read (or is reading). The only books the agent may say he read.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "author": {
+          "minLength": 1,
+          "title": "Author",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "status": {
+          "enum": [
+            "read",
+            "reading"
+          ],
+          "title": "Status",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Year",
+          "x-visibility": "public"
+        },
+        "finished": {
+          "anyOf": [
+            {
+              "pattern": "^\\d{4}-\\d{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished",
+          "x-visibility": "public"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note",
+          "x-visibility": "public"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Link",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "author",
+        "status"
+      ],
+      "title": "Book",
+      "type": "object"
+    },
+    "Contact": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "minLength": 1,
+          "title": "Email",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "phone": {
+          "minLength": 1,
+          "title": "Phone",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "website": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Website",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "github": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Github",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "linkedin": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Linkedin",
+          "type": "string",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "email",
+        "phone",
+        "website",
+        "github",
+        "linkedin"
+      ],
+      "title": "Contact",
+      "type": "object"
+    },
+    "CourseTaken": {
+      "additionalProperties": false,
+      "description": "A course Moeein took and passed. TA'd courses live in ``teaching``, never here.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "instructor": {
+          "minLength": 1,
+          "title": "Instructor",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "grade": {
+          "minLength": 1,
+          "title": "Grade",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "syllabus_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Syllabus Code",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "instructor",
+        "grade"
+      ],
+      "title": "CourseTaken",
+      "type": "object"
+    },
+    "Education": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "institution": {
+          "minLength": 1,
+          "title": "Institution",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "degree": {
+          "minLength": 1,
+          "title": "Degree",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location",
+          "x-visibility": "public"
+        },
+        "start": {
+          "minLength": 1,
+          "title": "Start",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "end": {
+          "minLength": 1,
+          "title": "End",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "gpa": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gpa",
+          "x-visibility": "public"
+        },
+        "coursework": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Coursework",
+          "type": "array",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "institution",
+        "degree",
+        "start",
+        "end"
+      ],
+      "title": "Education",
+      "type": "object"
+    },
+    "Experience": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "company": {
+          "minLength": 1,
+          "title": "Company",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "role": {
+          "minLength": 1,
+          "title": "Role",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "employment": {
+          "minLength": 1,
+          "title": "Employment",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location",
+          "x-visibility": "public"
+        },
+        "start": {
+          "minLength": 1,
+          "title": "Start",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "end": {
+          "minLength": 1,
+          "title": "End",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "bullets": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Bullets",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "tech": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tech",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "title": "Links",
+          "type": "array",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "company",
+        "role",
+        "employment",
+        "start",
+        "end",
+        "bullets"
+      ],
+      "title": "Experience",
+      "type": "object"
+    },
+    "Faq": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "answer": {
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "added": {
+          "format": "date",
+          "title": "Added",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "question",
+        "answer",
+        "added",
+        "source"
+      ],
+      "title": "Faq",
+      "type": "object"
+    },
+    "Honor": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "year": {
+          "minLength": 1,
+          "title": "Year",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "detail": {
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "year",
+        "detail"
+      ],
+      "title": "Honor",
+      "type": "object"
+    },
+    "Language": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "level": {
+          "minLength": 1,
+          "title": "Level",
+          "type": "string",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "name",
+        "level"
+      ],
+      "title": "Language",
+      "type": "object"
+    },
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "forbidden_actions": {
+          "items": {
+            "enum": [
+              "send_email",
+              "book_meeting",
+              "apply_to_job",
+              "speak_for_sharif",
+              "contact_third_party"
+            ],
+            "type": "string"
+          },
+          "title": "Forbidden Actions",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "unpublished_topics": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Unpublished Topics",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "guardrails": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Guardrails",
+          "type": "array",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "forbidden_actions",
+        "unpublished_topics",
+        "guardrails"
+      ],
+      "title": "Limits",
+      "type": "object"
+    },
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "href": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Href",
+          "type": "string",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "label",
+        "href"
+      ],
+      "title": "Link",
+      "type": "object"
+    },
+    "Meta": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "owner": {
+          "minLength": 1,
+          "title": "Owner",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array",
+          "x-visibility": "internal"
+        }
+      },
+      "required": [
+        "version",
+        "owner"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Person": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "headline": {
+          "minLength": 1,
+          "title": "Headline",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "positioning": {
+          "minLength": 1,
+          "title": "Positioning",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "about": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "About",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "location": {
+          "minLength": 1,
+          "title": "Location",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "languages": {
+          "items": {
+            "$ref": "#/$defs/Language"
+          },
+          "title": "Languages",
+          "type": "array",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "name",
+        "headline",
+        "positioning",
+        "about",
+        "location",
+        "languages"
+      ],
+      "title": "Person",
+      "type": "object"
+    },
+    "Project": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role",
+          "x-visibility": "public"
+        },
+        "date": {
+          "pattern": "^\\d{4}-\\d{2}$",
+          "title": "Date",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "tags": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "tech": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tech",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "highlights": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Highlights",
+          "type": "array",
+          "x-visibility": "public"
+        },
+        "body_md": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body Md",
+          "x-visibility": "public"
+        },
+        "links": {
+          "$ref": "#/$defs/ProjectLinks",
+          "x-visibility": "public"
+        },
+        "github_repo": {
+          "anyOf": [
+            {
+              "pattern": "^[\\w.-]+/[\\w.-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Github Repo",
+          "x-visibility": "public"
+        },
+        "github_org": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Github Org",
+          "x-visibility": "public"
+        },
+        "course": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Course",
+          "x-visibility": "public"
+        },
+        "featured": {
+          "default": false,
+          "title": "Featured",
+          "type": "boolean",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "summary",
+        "date",
+        "tags",
+        "tech"
+      ],
+      "title": "Project",
+      "type": "object"
+    },
+    "ProjectLinks": {
+      "additionalProperties": false,
+      "properties": {
+        "github": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Github",
+          "x-visibility": "public"
+        },
+        "live": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Live",
+          "x-visibility": "public"
+        },
+        "marketplace": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Marketplace",
+          "x-visibility": "public"
+        }
+      },
+      "title": "ProjectLinks",
+      "type": "object"
+    },
+    "Service": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "org": {
+          "minLength": 1,
+          "title": "Org",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "role": {
+          "minLength": 1,
+          "title": "Role",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "edition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edition",
+          "x-visibility": "public"
+        },
+        "period": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period",
+          "x-visibility": "public"
+        },
+        "team": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Team",
+          "x-visibility": "public"
+        },
+        "head": {
+          "default": false,
+          "title": "Head",
+          "type": "boolean",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "org",
+        "role"
+      ],
+      "title": "Service",
+      "type": "object"
+    },
+    "SkillGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "items": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Items",
+          "type": "array",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "items"
+      ],
+      "title": "SkillGroup",
+      "type": "object"
+    },
+    "Teaching": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "institution": {
+          "minLength": 1,
+          "title": "Institution",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "course": {
+          "minLength": 1,
+          "title": "Course",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "instructor": {
+          "minLength": 1,
+          "title": "Instructor",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "term": {
+          "minLength": 1,
+          "title": "Term",
+          "type": "string",
+          "x-visibility": "public"
+        },
+        "head_ta": {
+          "title": "Head Ta",
+          "type": "boolean",
+          "x-visibility": "public"
+        }
+      },
+      "required": [
+        "id",
+        "institution",
+        "course",
+        "instructor",
+        "term",
+        "head_ta"
+      ],
+      "title": "Teaching",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "$ref": "#/$defs/Meta",
+      "x-visibility": "public"
+    },
+    "person": {
+      "$ref": "#/$defs/Person",
+      "x-visibility": "public"
+    },
+    "contact": {
+      "$ref": "#/$defs/Contact",
+      "x-visibility": "public"
+    },
+    "education": {
+      "items": {
+        "$ref": "#/$defs/Education"
+      },
+      "title": "Education",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "honors": {
+      "items": {
+        "$ref": "#/$defs/Honor"
+      },
+      "title": "Honors",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "courses_taken": {
+      "items": {
+        "$ref": "#/$defs/CourseTaken"
+      },
+      "title": "Courses Taken",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "teaching": {
+      "items": {
+        "$ref": "#/$defs/Teaching"
+      },
+      "title": "Teaching",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "experience": {
+      "items": {
+        "$ref": "#/$defs/Experience"
+      },
+      "title": "Experience",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "projects": {
+      "items": {
+        "$ref": "#/$defs/Project"
+      },
+      "title": "Projects",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "service": {
+      "items": {
+        "$ref": "#/$defs/Service"
+      },
+      "title": "Service",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "skills": {
+      "items": {
+        "$ref": "#/$defs/SkillGroup"
+      },
+      "title": "Skills",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "books": {
+      "items": {
+        "$ref": "#/$defs/Book"
+      },
+      "title": "Books",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "faq": {
+      "items": {
+        "$ref": "#/$defs/Faq"
+      },
+      "title": "Faq",
+      "type": "array",
+      "x-visibility": "public"
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits",
+      "x-visibility": "public"
+    }
+  },
+  "required": [
+    "meta",
+    "person",
+    "contact",
+    "education",
+    "honors",
+    "courses_taken",
+    "teaching",
+    "experience",
+    "projects",
+    "service",
+    "skills",
+    "books",
+    "faq",
+    "limits"
+  ],
+  "title": "Record",
+  "type": "object"
+}
