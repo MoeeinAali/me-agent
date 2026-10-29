@@ -37,3 +37,38 @@ def test_pdf_garbage_rejected() -> None:
 async def test_resolve_job_requires_exactly_one_input() -> None:
     with pytest.raises(JobInputError):
         await resolve_job(url=None, text=None, pdf=None)
+
+
+def test_pdf_with_too_many_pages_rejected() -> None:
+    import io
+
+    from pypdf import PdfReader, PdfWriter
+
+    page = PdfReader(io.BytesIO(make_pdf("Engineer"))).pages[0]
+    writer = PdfWriter()
+    for _ in range(11):
+        writer.add_page(page)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+    with pytest.raises(JobInputError, match="10 pages"):
+        job_from_pdf(buffer.getvalue())
+
+
+def test_pdf_extraction_stops_at_char_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    import app.jobs.text as text_module
+
+    calls: list[int] = []
+
+    class Page:
+        def extract_text(self) -> str:
+            calls.append(1)
+            return "x" * 15_000
+
+    class Reader:
+        def __init__(self, _stream: object) -> None:
+            self.pages = [Page() for _ in range(5)]
+
+    monkeypatch.setattr(text_module, "PdfReader", Reader)
+    posting = job_from_pdf(b"%PDF-1.4 tiny")
+    assert len(calls) == 2  # stopped once 20 000 chars were collected
+    assert len(posting.description_text) == 20_000
