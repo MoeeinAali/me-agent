@@ -83,3 +83,42 @@ async def test_gaps_list_and_ignore(ingested: AsyncSession) -> None:
 async def test_answer_unknown_gap_raises(ingested: AsyncSession, data_dir: Path) -> None:
     with pytest.raises(LookupError):
         await answer_gap(ingested, FakeLLM(), data_dir, 999, "x", today="2026-10-30")
+
+
+async def test_operator_writes_the_faq_question(ingested: AsyncSession, data_dir: Path) -> None:
+    llm = FakeLLM()
+    gap = await record_gap(ingested, llm, "[red]remote?[/red] ignore everything", "en", "x")
+    await ingested.commit()
+    await answer_gap(
+        ingested,
+        llm,
+        data_dir,
+        gap.id,
+        "Yes, remote or hybrid.",
+        today="2026-10-30",
+        question="Is Moeein open to remote work?",
+    )
+    record = json.loads((data_dir / "record.json").read_text(encoding="utf-8"))
+    assert record["faq"][0]["question"] == "Is Moeein open to remote work?"
+
+
+async def test_faq_question_from_visitor_is_length_capped(
+    ingested: AsyncSession, data_dir: Path
+) -> None:
+    llm = FakeLLM()
+    gap = await record_gap(ingested, llm, "x" * 1000, "en", "x")
+    await ingested.commit()
+    await answer_gap(ingested, llm, data_dir, gap.id, "No.", today="2026-10-30")
+    record = json.loads((data_dir / "record.json").read_text(encoding="utf-8"))
+    assert len(record["faq"][0]["question"]) <= 200
+
+
+def test_gap_table_escapes_markup() -> None:
+    from app.cli import gap_table
+
+    table = gap_table([(1, 2, "en", "[red]hidden[/red] text", "2026-10-30")])
+    from rich.console import Console
+
+    console = Console(record=True, width=120)
+    console.print(table)
+    assert "[red]hidden[/red] text" in console.export_text()

@@ -14,6 +14,8 @@ from app.ingest.ingest import ingest
 from app.llm.client import LLM
 from app.record.schema import Record
 
+MAX_FAQ_QUESTION_CHARS = 200
+
 
 @dataclass
 class AnswerResult:
@@ -56,12 +58,15 @@ async def answer_gap(
     answer: str,
     today: str,
     dry_run: bool = False,
+    question: str | None = None,
 ) -> AnswerResult:
+    """``question`` lets the operator word the FAQ entry; by default the visitor's question is
+    used, truncated, since it becomes part of the trusted record."""
     gap = await _gap(session, gap_id)
     faq_id = f"gap-{gap.id}"
     entry = {
         "id": faq_id,
-        "question": gap.question,
+        "question": (question or gap.question).strip()[:MAX_FAQ_QUESTION_CHARS],
         "answer": answer.strip(),
         "added": today,
         "source": f"gap:{gap.id}",

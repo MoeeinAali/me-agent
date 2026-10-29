@@ -3,7 +3,7 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import date
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -12,6 +12,9 @@ from app.config import get_settings
 from app.db.session import engine_from
 from app.ingest.ingest import ingest as run_ingest
 from app.llm.client import get_llm
+
+if TYPE_CHECKING:
+    from rich.table import Table
 
 app = typer.Typer(no_args_is_help=True, help="me-agent operations")
 gaps_app = typer.Typer(help="Questions the record could not answer")
@@ -59,6 +62,17 @@ def ingest(
     with_session(go)
 
 
+def gap_table(rows: list[tuple[int, int, str, str, str]]) -> "Table":
+    """Visitor questions are untrusted: render them as plain text, never as Rich markup."""
+    from rich.table import Table
+    from rich.text import Text
+
+    table = Table("id", "count", "lang", "question", "last seen")
+    for gap_id, count, lang, question, seen in rows:
+        table.add_row(str(gap_id), str(count), lang, Text(question), seen)
+    return table
+
+
 @gaps_app.callback(invoke_without_command=True)
 def gaps(ctx: typer.Context) -> None:
     """List open gaps, most-asked first."""
@@ -89,6 +103,9 @@ def gaps_answer(
     gap_id: int,
     text: str,
     dry_run: Annotated[bool, typer.Option("--dry-run", help="Show the FAQ entry only")] = False,
+    question: Annotated[
+        str | None, typer.Option(help="Your wording of the FAQ question (default: visitor's)")
+    ] = None,
 ) -> None:
     """Add the answer to data/record.json as a FAQ entry and make it searchable now."""
     from app.gaps.manage import answer_gap

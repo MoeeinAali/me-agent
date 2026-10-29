@@ -1,20 +1,9 @@
-"""Starter questions: a fixed set per audience and language, plus what visitors ask most."""
+"""Starter questions: a curated set per audience and language, plus owner-approved FAQ."""
 
-import re
-from datetime import UTC, datetime, timedelta
-
-from sqlalchemy import distinct, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.db.models import TraceRow
 from app.domain import Audience, Lang
+from app.record.schema import Record
 
-POPULAR_DAYS = 30
-POPULAR_COUNT = 2
-# Visitor text is shown to other visitors only when many people asked it and it looks harmless.
-POPULAR_MIN_CONVERSATIONS = 3
-POPULAR_MAX_CHARS = 100
-_UNSAFE = re.compile(r"https?://|www\.|@|<|>|\.(com|ir|net|org|io)\b", re.I)
+FAQ_SUGGESTIONS = 2
 
 STATIC: dict[str, dict[str, list[str]]] = {
     "recruiter": {
@@ -76,25 +65,10 @@ STATIC: dict[str, dict[str, list[str]]] = {
 }
 
 
-async def suggestions(audience: Audience, lang: Lang, session: AsyncSession) -> list[str]:
-    since = datetime.now(UTC) - timedelta(days=POPULAR_DAYS)
-    popular = await session.scalars(
-        select(TraceRow.question)
-        .where(
-            TraceRow.created_at >= since,
-            TraceRow.language == lang,
-            TraceRow.channel != "eval",
-            TraceRow.capability.in_(["answer_from_record", "answer_from_api"]),
-        )
-        .group_by(TraceRow.question)
-        .having(func.count(distinct(TraceRow.conversation_id)) >= POPULAR_MIN_CONVERSATIONS)
-        .order_by(func.count(distinct(TraceRow.conversation_id)).desc())
-        .limit(POPULAR_COUNT * 5)
-    )
+async def suggestions(audience: Audience, lang: Lang, record: Record) -> list[str]:
+    """Only text Moeein wrote or approved is shown: the curated set, plus his newest FAQ
+    questions (added through ``me-agent gaps answer``). Raw visitor text is never echoed."""
     static = STATIC[audience][lang]
-    extra = [
-        q
-        for q in popular
-        if q not in static and len(q) <= POPULAR_MAX_CHARS and not _UNSAFE.search(q)
-    ][:POPULAR_COUNT]
+    newest = sorted(record.faq, key=lambda f: f.added, reverse=True)
+    extra = [f.question for f in newest if f.question not in static][:FAQ_SUGGESTIONS]
     return [*static, *extra]

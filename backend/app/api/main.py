@@ -20,19 +20,25 @@ from app.api.limits import UPLOAD_OVERHEAD, BodySizeLimit
 from app.config import get_settings
 from app.jobs.base import JobFetchError, JobInputError
 from app.logging import configure_logging
+from app.mcp_server import build_mcp
 
 log = structlog.get_logger()
-
-
-@asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    yield
-    await close_http()
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging()
+    mcp = build_mcp()
+    mcp_app = mcp.streamable_http_app(
+        streamable_http_path="/", stateless_http=True, json_response=True, host="0.0.0.0"
+    )
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        async with mcp.session_manager.run():
+            yield
+        await close_http()
+
     app = FastAPI(
         title="me-agent",
         version="0.1.0",
@@ -91,6 +97,8 @@ def create_app() -> FastAPI:
             content={"detail": f"{exc}. Please paste the job description text instead."},
         )
 
+    app.state.mcp = mcp
+    app.mount("/mcp", mcp_app)
     app.include_router(routes_chat.router)
     app.include_router(routes_jobs.router)
     app.include_router(routes_stream.router)

@@ -14,36 +14,48 @@ async def test_suggestions_rejects_unknown_audience(client: httpx.AsyncClient) -
     assert response.status_code == 422
 
 
-async def test_popular_questions_need_distinct_conversations_and_clean_text(
-    ingested: object,
+async def test_suggestions_never_show_raw_visitor_text_only_owner_faq(
+    ingested: object, test_record: object
 ) -> None:
     import uuid
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from app.db.models import TraceRow
+    from app.record.schema import Record
     from app.suggestions import STATIC, suggestions
 
     session: AsyncSession = ingested  # type: ignore[assignment]
-
-    def trace(question: str, conversation: uuid.UUID) -> TraceRow:
-        return TraceRow(
-            id=uuid.uuid4(),
-            conversation_id=conversation,
-            question=question,
-            capability="answer_from_record",
-            intent="fact_lookup",
-            channel="http",
-            language="en",
-            latency_ms=1,
-            data={},
-        )
-
-    one_chat = uuid.uuid4()
-    session.add_all([trace("Spam asked five times in one chat", one_chat) for _ in range(5)])
-    session.add_all([trace("Visit https://evil.example now", uuid.uuid4()) for _ in range(4)])
-    session.add_all([trace("Does he know Docker?", uuid.uuid4()) for _ in range(3)])
+    record: Record = test_record  # type: ignore[assignment]
+    session.add_all(
+        [
+            TraceRow(
+                id=uuid.uuid4(),
+                conversation_id=uuid.uuid4(),
+                question="Visitor spam text",
+                capability="answer_from_record",
+                intent="fact_lookup",
+                channel="http",
+                language="en",
+                latency_ms=1,
+                data={},
+            )
+            for _ in range(10)
+        ]
+    )
     await session.commit()
+    payload = record.model_dump(mode="json")
+    payload["faq"] = [
+        {
+            "id": "gap-1",
+            "question": "Is he open to remote work?",
+            "answer": "Yes.",
+            "added": "2026-10-30",
+            "source": "gap:1",
+        }
+    ]
+    with_faq = Record.model_validate(payload)
 
-    result = await suggestions("general", "en", session)
-    assert result == [*STATIC["general"]["en"], "Does he know Docker?"]
+    result = await suggestions("general", "en", with_faq)
+    assert result == [*STATIC["general"]["en"], "Is he open to remote work?"]
+    assert "Visitor spam text" not in result
