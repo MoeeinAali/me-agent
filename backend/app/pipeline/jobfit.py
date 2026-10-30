@@ -156,15 +156,10 @@ async def run_job_fit(
     requirements, usage = await extract_requirements(deps.llm, model, posting)
     ctx.usage += usage
 
-    collector = EvidenceCollector()
-    per_requirement: list[list[Evidence]] = []
     kinds = search_kinds("job_fit", ctx.req.audience)
-    for requirement in requirements:
-        hits = await search(
-            deps.session, deps.llm, requirement.requirement, kinds=kinds, top_k=HITS_PER_REQUIREMENT
-        )
-        ids = {collector.add_record(h.path, h.text) or collector.id_for(h.path) for h in hits}
-        per_requirement.append([e for e in collector.bundle.evidence if e.id in ids])
+    collector, per_requirement = await evidence_for_requirements(
+        deps.session, deps.llm, requirements, kinds
+    )
     for item in _job_evidence(posting):
         collector.add(item, prefix="J")
     collector.bundle.tool_calls.extend(tool_calls)

@@ -81,21 +81,15 @@ def gaps(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is not None:
         return
     from rich.console import Console
-    from rich.table import Table
 
     from app.gaps.manage import list_gaps
 
     async def go(session: AsyncSession) -> None:
-        table = Table("id", "count", "lang", "question", "last seen")
-        for gap in await list_gaps(session):
-            table.add_row(
-                str(gap.id),
-                str(gap.count),
-                gap.language,
-                gap.question,
-                gap.last_seen.strftime("%Y-%m-%d"),
-            )
-        Console().print(table)
+        rows = [
+            (g.id, g.count, g.language, g.question, g.last_seen.strftime("%Y-%m-%d"))
+            for g in await list_gaps(session)
+        ]
+        Console().print(gap_table(rows))
 
     with_session(go)
 
@@ -121,6 +115,7 @@ def gaps_answer(
             text,
             today=date.today().isoformat(),
             dry_run=dry_run,
+            question=question,
         )
         typer.echo(result.preview)
         if dry_run:
