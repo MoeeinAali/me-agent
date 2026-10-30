@@ -35,5 +35,17 @@ services:
       db:
         condition: service_healthy
 
+  web:
+    build:
+      context: frontend
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:24-alpine}
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    image: me-agent-web:local
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
 volumes:
   db-data:
