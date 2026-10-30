@@ -1,13 +1,13 @@
 # HW1 — A personal AI-native page (Moeein Aali)
 
-> **Status (2026-10-29):** the backend and its Docker image and CI are done. The Hamravesh deploy
-> is deferred (decided), so the public address below is still a placeholder. The three traces were
+> **Status (2026-10-30):** deployed to the personal k3s cluster (manifests in `me-infra/apps/me-agent`). The
+> API shares the cluster Postgres (pgvector added). The three traces were
 > taken from the local stack with the real model (GapGPT). **Re-take them from the live page after
 > deploying** (`uv run me-agent traces --capability … --limit 1`).
 
 ## 1. Public address and deploy steps
 
-- Public address: **TODO, after the Hamravesh/Darkube deploy**
+- Public address: **https://agent.moeein.me** (API: https://agent-api.moeein.me)
 - Images: `ghcr.io/<owner>/me-agent-api` and `ghcr.io/<owner>/me-agent-web`, built by
   `.github/workflows/images.yml` on every push to `main`
 - Run locally: `cp .env.example .env` (set `LLM_API_KEY`), then `docker compose up --build`.
