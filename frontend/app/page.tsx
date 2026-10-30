@@ -1,9 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { Chat } from "@/components/Chat";
 
 export default function Home() {
-  return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl items-center justify-center p-6">
-      <Button>Ask Moeein</Button>
-    </main>
-  );
+  return <Chat />;
 }
