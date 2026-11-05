@@ -16,6 +16,18 @@ cp .env.example .env          # set LLM_API_KEY
 docker compose up --build     # db + api (:8000) + web (:3000)
 ```
 
+## Deploy
+
+Step-by-step for Hamravesh (Darkube) and the personal k3s cluster: [`DEPLOY.md`](DEPLOY.md).
+
+| Variable | Where | What |
+|---|---|---|
+| `DATABASE_URL` | api | `postgresql+asyncpg://user:pass@host:5432/db`; the role must be able to `CREATE EXTENSION vector` |
+| `LLM_API_KEY` | api | GapGPT key (secret) |
+| `CORS_ORIGINS` | api | JSON list of web origins, e.g. `["https://agent.example"]` |
+| `RATE_LIMIT_CLIENT_HEADER` | api | Header with the visitor IP behind a proxy/CDN (`x-real-ip` on Darkube, `cf-connecting-ip` behind Cloudflare) |
+| `API_BASE_URL` | web | Public API address the browser calls; read at runtime |
+
 ## Use it from an AI assistant (MCP)
 
 The API serves an MCP endpoint (streamable HTTP) at `/mcp/` with four tools:

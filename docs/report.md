@@ -1,18 +1,26 @@
 # HW1 — A personal AI-native page (Moeein Aali)
 
-> **Status (2026-10-30):** deployed to the personal k3s cluster (manifests in `me-infra/apps/me-agent`). The
-> API shares the cluster Postgres (pgvector added). The three traces were
-> taken from the local stack with the real model (GapGPT). **Re-take them from the live page after
-> deploying** (`uv run me-agent traces --capability … --limit 1`).
+> **Before submitting:** follow `DEPLOY.md`. It fills in the Hamravesh address below and re-takes
+> the three traces in section 7 from the live page.
 
 ## 1. Public address and deploy steps
 
-- Public address: **https://agent.moeein.me** (API: https://agent-api.moeein.me)
-- Images: `ghcr.io/<owner>/me-agent-api` and `ghcr.io/<owner>/me-agent-web`, built by
-  `.github/workflows/images.yml` on every push to `main`
-- Run locally: `cp .env.example .env` (set `LLM_API_KEY`), then `docker compose up --build`.
-  The API is on `:8000` and the web app on `:3000`.
-- At container start the API runs `alembic upgrade head`, then `me-agent ingest`, then `uvicorn`.
+- **Public address (Hamravesh / Darkube):** `https://<web-app>.darkube.app` (fill in after deploy).
+  The API is `https://<api-app>.darkube.app`.
+- **How it is deployed on Darkube:** three apps in one namespace.
+  1. `me-agent-db`: a Docker-image app, `pgvector/pgvector:pg16`, with a disk at
+     `/var/lib/postgresql/data`. Hamravesh's managed PostgreSQL has no `vector` extension.
+  2. `me-agent-api`: a GitHub-repo app, Dockerfile `backend/Dockerfile`, build context `.`,
+     port 8000, readiness `/readyz`. At start it runs `alembic upgrade head`, then
+     `me-agent ingest` (incremental), then `uvicorn`.
+  3. `me-agent-web`: a GitHub-repo app, Dockerfile `frontend/Dockerfile`, build context
+     `frontend`, port 3000. `API_BASE_URL` points the browser at the API (read at runtime).
+- Every push to `main` rebuilds and redeploys both apps (Darkube's auto-deploy).
+- Full steps and the exact settings are in `DEPLOY.md`.
+- A mirror also runs on a personal k3s cluster (`agent.moeein.me`; manifests in
+  `me-infra/apps/me-agent`).
+- **Run locally:** `cp .env.example .env` (set `LLM_API_KEY`), then `docker compose up --build`.
+  The API is on `:8000`, the web app on `:3000`.
 
 ## 2. The record (JSON) and which fields are visible
 
@@ -57,20 +65,38 @@ model see the same list.
 
 ## 5. Explainability
 
-Every answer returns a trace: the intent, the **fields read** (record paths such as
-`projects[comeback].summary`), the tools called, the **capability**, and the **missing facts**.
-It also returns each claim with the evidence IDs it cites and a proof link (GitHub, live URL,
-syllabus page, or record path).
+- **Every sentence carries its source.** Each verified claim in an answer ends with a numbered
+  marker. Hovering shows the record entry; clicking opens it in the "Why this answer" panel.
+- **"Why this answer" panel:**
+  - the **action** the page took, with a plain-language reason;
+  - the numbered **sources**, each with its record path and a proof link (GitHub, live site,
+    syllabus page);
+  - the pipeline steps;
+  - the full trace: intent, **record fields read**, live checks called, and **facts not in the
+    record**.
+- **Visible limits.** The welcome screen and the "What I can't do" panel list the actions the
+  page won't take and the topics Moeein didn't publish.
 
 ## 6. Creativity
 
 - **Job-fit scorecard plus verifiable CV:** requirement-by-requirement matched / partial / no
   evidence, with proofs, and coverage and verdict computed in code.
-- Answers tailored to the audience (recruiter, tech lead, professor), live-trace streaming (SSE),
-  voice in and out, an MCP server so other AI assistants can ask about Moeein, and a
-  knowledge-gap loop (`me-agent gaps`).
+- **Job input:** paste a job link (hrcando career pages are read directly) or the job text into
+  the chat, or upload a PDF.
+- **Audience-aware answers:** "Who's asking?" frames answers for a recruiter, a tech lead or
+  CTO, or a professor; the facts stay the same.
+- **Live progress:** the answer streams with live pipeline progress (SSE).
+- **Persian and English:** the page answers in the question's language, with a full
+  right-to-left layout for Persian.
+- **Voice:** ask by voice and optionally hear the answer.
+- **MCP server:** other AI assistants can ask about Moeein.
+- **Knowledge-gap loop:** unanswered questions are recorded and become FAQ entries
+  (`me-agent gaps`).
 
 ## 7. Three traces
+
+> These were taken from the local stack with the real model. Replace them with traces from the
+> live Hamravesh page (`DEPLOY.md`, step 6).
 
 ### 7.1 Good answer
 
