@@ -16,9 +16,9 @@ _ACTION_NAMES: dict[str, dict[str, str]] = {
 _TEMPLATES: dict[str, dict[str, str]] = {
     "refuse_action": {
         "en": "I can only answer questions about Moeein — I can't {action} on his behalf. "
-        "His contact details are on this page if you'd like to reach him directly.",
+        "Ask me for his public contact details if you'd like to reach him directly.",
         "fa": "من فقط به سؤال‌ها دربارهٔ معین پاسخ می‌دهم و نمی‌توانم از طرف او {action}. "
-        "اگر می‌خواهید مستقیم با او در ارتباط باشید، اطلاعات تماسش در همین صفحه هست.",
+        "اگر می‌خواهید مستقیم با او در ارتباط باشید، اطلاعات تماس عمومی‌اش را از من بپرسید.",
     },
     "refuse_topic": {
         "en": "Moeein has chosen not to publish anything about {topic}, so I won't discuss it.",

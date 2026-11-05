@@ -1,6 +1,7 @@
 """Step ⑥: keep only what the evidence supports, then choose the capability in code."""
 
 from dataclasses import dataclass, field
+from html import unescape
 
 from app.domain import Capability, Claim, Evidence, Lang
 from app.pipeline.generate import GenerationOut
@@ -38,7 +39,10 @@ def verify(out: GenerationOut, evidence: list[Evidence]) -> VerifyResult:
     for claim in out.claims:
         cited = [eid for eid in claim.evidence if eid in trusted]
         if cited:
-            kept.append(claim.model_copy(update={"evidence": cited}))
+            # Evidence reaches the model HTML-escaped (it sits inside <item> tags); a claim that
+            # copies "&amp;" must still read as "&".
+            text = unescape(claim.text)
+            kept.append(claim.model_copy(update={"text": text, "evidence": cited}))
         else:
             dropped.append(claim)
     ratio = len(dropped) / len(out.claims) if out.claims else 0.0

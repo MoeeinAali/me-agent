@@ -123,3 +123,26 @@ async def test_hrcando_failure_is_502_with_paste_hint(
     response = await client.post("/v1/chat", json={"message": "fit?", "job_url": MILLI})
     assert response.status_code == 502
     assert "paste" in response.json()["detail"]
+
+
+async def test_jobfit_reads_a_job_described_in_the_message(
+    client: httpx.AsyncClient, fake_llm: FakeLLM
+) -> None:
+    """The assignment's "a job the visitor describes": no attachment, the role is in the text."""
+    script_jobfit(fake_llm)
+    message = "Is he a fit for a senior frontend role that needs 3 years of Next.js and TypeScript?"
+    body = (await client.post("/v1/chat", json={"message": message})).json()
+    assert body["scorecard"]["job"]["source"] == "pasted"
+    assert body["capability"] == "answer_from_record"
+
+
+async def test_jobfit_reads_a_job_link_pasted_in_the_message(
+    client: httpx.AsyncClient, fake_llm: FakeLLM, external: respx.MockRouter
+) -> None:
+    external.get(url__startswith=API_URL).mock(return_value=httpx.Response(200, json=FIXTURE))
+    script_jobfit(fake_llm)
+    body = (
+        await client.post("/v1/chat", json={"message": f"آیا مناسب این شغل است؟ {MILLI}"})
+    ).json()
+    assert body["scorecard"]["job"]["url"] == MILLI
+    assert body["capability"] == "answer_from_api"

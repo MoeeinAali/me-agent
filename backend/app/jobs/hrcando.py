@@ -25,6 +25,10 @@ class HrcandoAdapter:
         self._client = client
 
     def can_handle(self, url: str) -> bool:
+        return self.can_handle_url(url)
+
+    @staticmethod
+    def can_handle_url(url: str) -> bool:
         return _JOB_PATH.search(url) is not None
 
     async def fetch(self, url: str) -> JobPosting:
@@ -51,7 +55,10 @@ class HrcandoAdapter:
         payload = response.json() if response.status_code == 200 else {}
         data = payload.get("data") if payload.get("succeed") is True else None
         if not isinstance(data, dict):
-            raise JobFetchError(f"hrcando rejected the request (HTTP {response.status_code})")
+            raise JobFetchError(
+                f"Couldn't load that job from hrcando (HTTP {response.status_code}); "
+                "the posting may have closed"
+            )
 
         company = data.get("companyInfo") or {}
         return JobPosting(

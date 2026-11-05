@@ -85,3 +85,10 @@ def test_decide_capability_api_vs_record() -> None:
 def test_compose_answer_sentence_after_bullet_starts_new_line() -> None:
     claims = [Claim(text="- Go", evidence=["E1"]), Claim(text="It is fast.", evidence=["E1"])]
     assert compose_answer(claims, [], "en") == "- Go\nIt is fast."
+
+
+def test_verify_unescapes_html_entities_copied_from_evidence() -> None:
+    result = verify(
+        out(Claim(text="Mark Richards &amp; Neal Ford wrote it.", evidence=["E1"])), [ev("E1")]
+    )
+    assert result.claims_kept[0].text == "Mark Richards & Neal Ford wrote it."

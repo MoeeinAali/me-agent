@@ -55,7 +55,7 @@ async def test_fetch_maps_milli_fixture() -> None:
 @respx.mock
 async def test_fetch_500_raises_jobfetcherror() -> None:
     respx.get(url__startswith=API_URL).mock(return_value=httpx.Response(500))
-    with pytest.raises(JobFetchError, match="hrcando rejected the request"):
+    with pytest.raises(JobFetchError, match="may have closed"):
         await HrcandoAdapter(get_settings()).fetch(MILLI)
 
 

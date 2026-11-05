@@ -52,6 +52,12 @@ _ORDINALS: list[set[str]] = [
     {"fifth", "5", "5th", "پنجمی", "پنجم"},
 ]
 STAGES = ("understand", "resolve", "policy", "evidence", "generate", "verify")
+# Ordinals ("second", "2") pick a clarify option only in a short reply; in a longer message a
+# number is part of a new question ("does he have 2 years of Go?").
+MAX_ORDINAL_REPLY_WORDS = 4
+# A job_fit message this long describes the role itself ("a senior React role needing …").
+MIN_INLINE_JOB_CHARS = 60
+_URL = re.compile(r"https?://[^\s<>\"'«»]+")
 
 
 @dataclass
@@ -82,9 +88,24 @@ def match_pending(text: str, options: list[dict[str, str]]) -> int | None:
         if label and (label in wanted or (len(wanted) >= 3 and wanted in label)):
             return index
     tokens = set(re.findall(r"\w+", wanted))
+    if len(tokens) > MAX_ORDINAL_REPLY_WORDS:
+        return None
     for index, words in enumerate(_ORDINALS):
         if index < len(options) and tokens & {normalize(w) for w in words}:
             return index
+    return None
+
+
+def inline_job(message: str) -> dict[str, str] | None:
+    """A job the visitor gave in the chat itself: a job-board link, or a description of the role."""
+    from app.jobs.hrcando import HrcandoAdapter
+
+    for url in _URL.findall(message):
+        url = url.rstrip(".,;:!?)]}،؛")
+        if HrcandoAdapter.can_handle_url(url):
+            return {"job_url": url}
+    if len(message) >= MIN_INLINE_JOB_CHARS:
+        return {"job_text": message}
     return None
 
 
@@ -312,6 +333,8 @@ async def run_chat(
             ctx, answer=messages.message("smalltalk", u.language), capability="clarify"
         )
     if u.intent == "job_fit" or req.job_url or req.job_text:
+        if not (req.job_url or req.job_text) and (found := inline_job(req.message)):
+            ctx.req = req = req.model_copy(update=found)
         if job_fit is not None and (req.job_url or req.job_text):
             return await job_fit(ctx)
         return await finish(
