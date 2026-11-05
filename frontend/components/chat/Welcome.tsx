@@ -1,11 +1,11 @@
 "use client";
 
-import { Briefcase } from "lucide-react";
+import { Briefcase, ShieldAlert } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Audience, type Lang } from "@/lib/api/types";
-import { AUDIENCE_LABELS, t } from "@/lib/i18n";
+import { Audience, type Lang, type Limits } from "@/lib/api/types";
+import { AUDIENCE_LABELS, actionLabel, t, topicLabel } from "@/lib/i18n";
 
 /** The empty state: who the agent speaks for, who is asking, and what to ask first. */
 export function Welcome({
@@ -15,7 +15,9 @@ export function Welcome({
   suggestions,
   onPick,
   onJob,
+  limits,
 }: {
+  limits?: Limits | null;
   lang: Lang;
   audience: Audience;
   onAudience: (a: Audience) => void;
@@ -99,6 +101,22 @@ export function Welcome({
           </li>
         </ul>
       </section>
+
+      {limits ? (
+        <section aria-labelledby="limits" className="flex gap-3 text-sm text-muted-foreground">
+          <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+          <div className="flex flex-col gap-1.5">
+            <h2 id="limits" className="text-foreground">
+              {t("pageLimits", lang)}
+            </h2>
+            <p>{limits.forbidden_actions.map((a) => actionLabel(a, lang)).join(lang === "fa" ? "، " : "; ")}.</p>
+            <p>
+              {t("unpublished", lang)}:{" "}
+              {limits.unpublished_topics.map((x) => topicLabel(x, lang)).join(lang === "fa" ? "، " : ", ")}.
+            </p>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

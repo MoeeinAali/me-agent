@@ -1,7 +1,7 @@
 "use client";
 
 import { CloudOff, Languages, Paperclip, SquarePen, Volume2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { useStore } from "zustand";
 
@@ -20,17 +20,26 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Toggle } from "@/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MicButton } from "@/components/voice/MicButton";
-import { getReady, getSuggestions, postJobFit } from "@/lib/api/client";
-import { Audience, type Lang } from "@/lib/api/types";
+import { getLimits, getReady, getSuggestions, postJobFit } from "@/lib/api/client";
+import { Audience, type Lang, type Limits } from "@/lib/api/types";
 import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { AUDIENCE_LABELS, t } from "@/lib/i18n";
 import { createChatStore } from "@/lib/store";
+
+const noopSubscribe = () => () => {};
 
 export function Chat() {
   const [store] = useState(() => createChatStore());
   const { messages, busy, audience, conversationId, selectedId, send, retry, setAudience, addExchange, select, reset } =
     useStore(store);
-  const [lang, setLang] = useState<Lang>("en");
+  // Persian browsers start in Persian until the visitor picks; the server always renders English.
+  const browserFa = useSyncExternalStore(
+    noopSubscribe,
+    () => navigator.language?.toLowerCase().startsWith("fa") ?? false,
+    () => false,
+  );
+  const [chosenLang, setLang] = useState<Lang | null>(null);
+  const lang: Lang = chosenLang ?? (browserFa ? "fa" : "en");
   const [tts, setTts] = useState(false);
   const [jobOpen, setJobOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -38,6 +47,8 @@ export function Chat() {
   const [ready, setReady] = useState(true);
   const [activeSource, setActiveSource] = useState<number>();
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [limits, setLimits] = useState<Limits | null>(null);
+  const [limitsFailed, setLimitsFailed] = useState(false);
   const wide = useMediaQuery("(min-width: 1024px)");
 
   // Persian flips the whole page (including portalled dialogs and sheets) to right-to-left.
@@ -53,6 +64,10 @@ export function Chat() {
       live = false;
     };
   }, [audience, lang]);
+
+  useEffect(() => {
+    getLimits().then(setLimits, () => setLimitsFailed(true));
+  }, []);
 
   useEffect(() => {
     let live = true;
@@ -99,13 +114,7 @@ export function Chat() {
   return (
     <div className="flex h-dvh flex-col">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-        <button
-          type="button"
-          onClick={reset}
-          disabled={working}
-          className="me-auto flex min-w-0 items-center gap-2.5 text-start"
-          aria-label={t("newChat", lang)}
-        >
+        <div className="me-auto flex min-w-0 items-center gap-2.5">
           <Avatar className="size-7 rounded-none">
             <AvatarImage src="/images/avatar.jpg" alt="" className="rounded-none" />
             <AvatarFallback className="rounded-none">MA</AvatarFallback>
@@ -114,7 +123,7 @@ export function Chat() {
             {t("name", lang)}
             <span className="text-muted-foreground"> / agent</span>
           </span>
-        </button>
+        </div>
         {messages.length > 0 ? (
           <Select value={audience} onValueChange={(v) => v && setAudience(Audience.parse(v))}>
             <SelectTrigger size="sm" aria-label={t("whoAsking", lang)}>
@@ -132,7 +141,7 @@ export function Chat() {
         <Button variant="ghost" size="sm" onClick={() => setLang(lang === "en" ? "fa" : "en")} aria-label="Language">
           <Languages /> <span className={lang === "en" ? "font-[family-name:var(--font-fa)]" : ""}>{t("language", lang)}</span>
         </Button>
-        <LimitsSheet lang={lang} />
+        <LimitsSheet lang={lang} limits={limits} failed={limitsFailed} />
         {messages.length > 0 ? (
           <Tooltip>
             <TooltipTrigger
@@ -166,6 +175,7 @@ export function Chat() {
                   suggestions={suggestions}
                   onPick={(s) => void send(s)}
                   onJob={() => setJobOpen(true)}
+                  limits={limits}
                 />
               ) : (
                 <MessageList

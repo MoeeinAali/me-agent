@@ -46,6 +46,8 @@ const STRINGS = {
   whoAsking: { en: "Who's asking?", fa: "شما کی هستید؟" },
   whoAskingHint: { en: "Answers are framed for you; the facts stay the same.", fa: "پاسخ‌ها برای شما تنظیم می‌شوند؛ واقعیت‌ها همان می‌مانند." },
   tryAsking: { en: "Try asking", fa: "مثلاً بپرسید" },
+  pageLimits: { en: "What this page won't do", fa: "کارهایی که این صفحه انجام نمی‌دهد" },
+  pageLimitsMore: { en: "See all limits", fa: "همه‌ی محدودیت‌ها" },
   jobCardTitle: { en: "Check fit for a job", fa: "بررسی تناسب با یک شغل" },
   jobCardBody: {
     en: "Paste a job link, its text, or a PDF. You get a requirement-by-requirement scorecard with proof.",
@@ -75,7 +77,7 @@ const STRINGS = {
     fa: "چیزی بپرسید تا این بخش نشان دهد هر جمله‌ی پاسخ از کجا آمده.",
   },
   progress: { en: "How it answered", fa: "مراحل پاسخ" },
-  details: { en: "Technical details", fa: "جزئیات فنی" },
+  details: { en: "Fields read and full trace", fa: "فیلدهای خوانده‌شده و ردگیری کامل" },
   intent: { en: "Intent", fa: "هدف" },
   capability: { en: "Action", fa: "اقدام" },
   fields: { en: "Record fields read", fa: "فیلدهای خوانده‌شده" },
@@ -128,3 +130,27 @@ export const STAGE_LABELS: Record<string, Record<Lang, string>> = {
   generate: { en: "Wrote the answer", fa: "نوشتن پاسخ" },
   verify: { en: "Verified every claim", fa: "راستی‌آزمایی ادعاها" },
 };
+
+const ACTION_LABELS: Record<string, Record<Lang, string>> = {
+  send_email: { en: "Send emails for Moeein", fa: "ایمیل فرستادن از طرف معین" },
+  book_meeting: { en: "Book meetings", fa: "رزرو جلسه" },
+  apply_to_job: { en: "Apply to jobs for him", fa: "درخواست شغل از طرف او" },
+  speak_for_sharif: { en: "Speak for Sharif University of Technology", fa: "صحبت از طرف دانشگاه صنعتی شریف" },
+  contact_third_party: { en: "Contact anyone on his behalf", fa: "تماس با دیگران از طرف او" },
+};
+
+const TOPIC_LABELS: Record<string, string> = {
+  "salary expectations": "حقوق درخواستی",
+  "home address": "آدرس منزل",
+  "political views": "دیدگاه‌های سیاسی",
+  "religious views": "دیدگاه‌های مذهبی",
+  family: "خانواده",
+  health: "سلامت",
+  "current employer internal details": "جزئیات داخلی کارفرمای فعلی",
+};
+
+/** Forbidden actions arrive as ids (send_email); unknown ids fall back to readable words. */
+export const actionLabel = (id: string, lang: Lang) => ACTION_LABELS[id]?.[lang] ?? id.replaceAll("_", " ");
+
+/** Unpublished topics are written in English in the record. */
+export const topicLabel = (topic: string, lang: Lang) => (lang === "fa" ? (TOPIC_LABELS[topic] ?? topic) : topic);

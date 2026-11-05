@@ -1,5 +1,5 @@
-# syntax=docker/dockerfile:1.7
 # Build context: the repository root (the image ships data/ alongside the app).
+# Plain Dockerfile syntax (no BuildKit cache mounts) so any builder works, Darkube's included.
 ARG PYTHON_IMAGE=python:3.12-slim-bookworm
 
 FROM ${PYTHON_IMAGE} AS builder
@@ -7,11 +7,11 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_P
 RUN pip install --no-cache-dir uv==0.12.0
 WORKDIR /app
 COPY backend/pyproject.toml backend/uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-dev --no-install-project --no-cache
 COPY backend/app ./app
 COPY backend/alembic ./alembic
 COPY backend/alembic.ini ./
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --no-cache
 
 FROM ${PYTHON_IMAGE} AS runtime
 ENV PYTHONUNBUFFERED=1 PATH="/app/.venv/bin:$PATH" DATA_DIR=/app/data

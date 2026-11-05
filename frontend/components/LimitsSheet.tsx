@@ -1,29 +1,27 @@
 "use client";
 
 import { ShieldAlert } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { getLimits } from "@/lib/api/client";
 import type { Lang, Limits } from "@/lib/api/types";
-import { type StringKey, t } from "@/lib/i18n";
-
-const SECTIONS: [keyof Limits, StringKey][] = [
-  ["forbidden_actions", "forbidden"],
-  ["unpublished_topics", "unpublished"],
-  ["guardrails", "guardrails"],
-];
+import { actionLabel, t, topicLabel } from "@/lib/i18n";
 
 /** The same limits the model's system prompt is built from (GET /v1/limits). */
 export function LimitsList({ limits, lang }: { limits: Limits; lang: Lang }) {
+  const sections = [
+    { title: t("forbidden", lang), items: limits.forbidden_actions.map((a) => actionLabel(a, lang)) },
+    { title: t("unpublished", lang), items: limits.unpublished_topics.map((x) => topicLabel(x, lang)) },
+    // Guardrails are the exact English sentences the model is instructed with.
+    { title: t("guardrails", lang), items: limits.guardrails, dir: "ltr" as const },
+  ];
   return (
     <div className="flex flex-col gap-6 p-4">
-      {SECTIONS.map(([key, title]) => (
-        <section key={key} className="flex flex-col gap-1">
-          <h3 className="text-sm text-muted-foreground">{t(title, lang)}</h3>
-          <ul dir="auto" className="flex list-disc flex-col gap-1 ps-4 text-sm leading-6">
-            {limits[key].map((item) => (
+      {sections.map(({ title, items, dir }) => (
+        <section key={title} className="flex flex-col gap-1">
+          <h3 className="text-sm text-muted-foreground">{title}</h3>
+          <ul dir={dir ?? "auto"} className="flex list-disc flex-col gap-1 ps-4 text-sm leading-6">
+            {items.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -33,13 +31,7 @@ export function LimitsList({ limits, lang }: { limits: Limits; lang: Lang }) {
   );
 }
 
-export function LimitsSheet({ lang, load = getLimits }: { lang: Lang; load?: () => Promise<Limits> }) {
-  const [limits, setLimits] = useState<Limits | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    load().then(setLimits, () => setFailed(true));
-  }, [load]);
-
+export function LimitsSheet({ lang, limits, failed }: { lang: Lang; limits: Limits | null; failed: boolean }) {
   return (
     <Sheet>
       <SheetTrigger render={<Button variant="ghost" size="sm" aria-label={t("limits", lang)} />}>

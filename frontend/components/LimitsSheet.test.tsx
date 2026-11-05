@@ -9,13 +9,14 @@ describe("LimitsSheet", () => {
       <LimitsList
         lang="en"
         limits={{
-          forbidden_actions: ["Send email on Moeein's behalf"],
+          forbidden_actions: ["send_email", "future_action"],
           unpublished_topics: ["Salary expectations"],
           guardrails: ["Never invent facts"],
         }}
       />,
     );
-    expect(screen.getByText("Send email on Moeein's behalf")).toBeInTheDocument();
+    expect(screen.getByText("Send emails for Moeein")).toBeInTheDocument();
+    expect(screen.getByText("future action")).toBeInTheDocument();
     expect(screen.getByText("Salary expectations")).toBeInTheDocument();
     expect(screen.getByText("Never invent facts")).toBeInTheDocument();
   });

@@ -73,7 +73,7 @@ function SourceItem({ source, lang, active }: { source: Source; lang: Lang; acti
 
 /** Where the selected answer came from: its action, numbered sources, progress, and the raw trace. */
 export function Inspector({ message, lang, activeSource }: { message?: UIMessage; lang: Lang; activeSource?: number }) {
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(true);
 
   if (!message) {
     return (

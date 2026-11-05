@@ -1,13 +1,13 @@
-# syntax=docker/dockerfile:1.7
-# Next.js standalone build. NEXT_PUBLIC_API_BASE_URL is inlined into the client bundle at build
-# time, so it is a build argument, not a runtime variable.
+# Next.js standalone build. The browser gets the API address at runtime from API_BASE_URL (see
+# app/runtime-config.js), so one image serves any deployment. NEXT_PUBLIC_API_BASE_URL is only the
+# build-time fallback. Plain Dockerfile syntax (no BuildKit cache mounts) so any builder works.
 ARG NODE_IMAGE=node:24-alpine
 
 FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
