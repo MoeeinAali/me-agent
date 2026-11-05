@@ -1,7 +1,7 @@
 "use client";
 
 import { Mic, Square } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import type { Audience, ChatResponse, Lang } from "@/lib/api/types";
 import { t } from "@/lib/i18n";
 
 export const MAX_RECORDING_MS = 60_000;
+const noopSubscribe = () => () => {};
 // Low bitrate keeps a 60 s webm clip under the backend's cap for formats it cannot measure.
 const AUDIO_BITS_PER_SECOND = 32_000;
 
@@ -35,10 +36,12 @@ export function MicButton({
   const [sending, setSending] = useState(false);
   const recorder = useRef<MediaRecorder | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const supported =
-    typeof window !== "undefined" &&
-    typeof window.MediaRecorder !== "undefined" &&
-    !!navigator.mediaDevices?.getUserMedia;
+  // Read on the client only: the server render must match the first client render.
+  const supported = useSyncExternalStore(
+    noopSubscribe,
+    () => typeof window.MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia,
+    () => false,
+  );
 
   useEffect(
     () => () => {
@@ -103,7 +106,7 @@ export function MicButton({
           <span>
             <Button
               type="button"
-              size="icon"
+              size="icon-sm"
               variant={recording ? "destructive" : "ghost"}
               aria-label={label}
               disabled={!supported || disabled || sending}

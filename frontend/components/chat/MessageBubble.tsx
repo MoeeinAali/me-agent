@@ -1,39 +1,48 @@
 "use client";
 
-import { ChevronDown, CircleHelp, Ban, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { Ban, CircleHelp, Copy, LoaderCircle, PanelRight, RotateCcw, ShieldX } from "lucide-react";
 import { cn } from "cn";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Scorecard } from "@/components/job/Scorecard";
-import { StageProgress } from "@/components/trace/StageProgress";
-import { TracePanel } from "@/components/trace/TracePanel";
-import type { Lang } from "@/lib/api/types";
-import { t } from "@/lib/i18n";
+import { currentStage } from "@/components/trace/StageProgress";
+import type { Capability, Lang } from "@/lib/api/types";
+import { numberSources } from "@/lib/citations";
+import { CAPABILITY_LABELS, STAGE_LABELS, t } from "@/lib/i18n";
 import type { UIMessage } from "@/lib/store";
+import { AnswerBody } from "./AnswerBody";
 import { CapabilityBadge, isRefusal } from "./CapabilityBadge";
 import { ClarifyOptions } from "./ClarifyOptions";
+
+const NOTICE_ICON: Partial<Record<Capability, typeof Ban>> = {
+  clarify: CircleHelp,
+  refuse_unpublished: ShieldX,
+  refuse_action: Ban,
+  out_of_scope: Ban,
+};
 
 export function MessageBubble({
   message,
   lang,
   busy,
+  selected,
   onSend,
   onRetry,
+  onInspect,
 }: {
   message: UIMessage;
   lang: Lang;
   busy?: boolean;
+  selected?: boolean;
   onSend?: (text: string) => void;
   onRetry?: (id: string) => void;
+  /** Show this answer's sources; `source` focuses one numbered source. */
+  onInspect?: (id: string, source?: number) => void;
 }) {
-  // Open while the answer streams so the live trace is visible; the user can collapse it after.
-  const [open, setOpen] = useState<boolean | null>(null);
-
   if (message.role === "user") {
     return (
-      <div dir="auto" className="ms-auto max-w-[85%] whitespace-pre-wrap bg-secondary px-3 py-2 text-sm">
+      <div dir="auto" className="ms-auto max-w-[85%] whitespace-pre-wrap bg-muted px-4 py-2.5 text-[15px] leading-7">
         {message.text}
       </div>
     );
@@ -42,38 +51,50 @@ export function MessageBubble({
   const response = message.response;
   const answerLang = response?.trace.language ?? lang;
   const capability = response?.capability;
-  const muted = capability && (isRefusal(capability) || capability === "clarify");
+  const notice = capability && (isRefusal(capability) || capability === "clarify");
+  const NoticeIcon = capability ? NOTICE_ICON[capability] : undefined;
   const streaming = message.status === "streaming";
+  const stage = currentStage(message.stages);
+  const sources = response ? numberSources(response) : [];
 
   return (
     <article
-      className={cn("flex min-w-0 flex-col gap-3 border p-3", muted ? "border-dashed border-muted-foreground/40" : "border-border")}
       aria-busy={streaming}
+      aria-label={lang === "fa" ? "پاسخ دستیار" : "Agent answer"}
+      className={cn(
+        "group/answer flex min-w-0 flex-col gap-3 border-s-2 ps-4 transition-colors",
+        selected ? "border-primary" : "border-border",
+      )}
     >
-      <header className="flex items-center gap-2">
-        {capability ? (
-          <>
-            {capability === "clarify" ? (
-              <CircleHelp className="size-4 text-muted-foreground" aria-hidden />
-            ) : muted ? (
-              <Ban className="size-4 text-muted-foreground" aria-hidden />
-            ) : null}
-            <CapabilityBadge capability={capability} lang={answerLang} />
-          </>
-        ) : null}
-        {streaming ? <StageProgress stages={message.stages} /> : null}
-      </header>
+      {notice && capability ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {NoticeIcon ? <NoticeIcon className="size-4 shrink-0" aria-hidden /> : null}
+          <p dir="auto">{CAPABILITY_LABELS[capability][answerLang]}</p>
+        </div>
+      ) : null}
 
-      {message.text ? (
-        <p dir="auto" className="whitespace-pre-wrap text-sm leading-relaxed">
+      {response && message.status === "done" ? (
+        <AnswerBody
+          response={response}
+          sources={sources}
+          lang={answerLang}
+          onOpenSource={(n) => onInspect?.(message.id, n)}
+        />
+      ) : message.text ? (
+        <p dir="auto" className="whitespace-pre-wrap text-[15px] leading-7">
           {message.text}
         </p>
-      ) : streaming ? (
-        <p className="animate-pulse text-sm text-muted-foreground">…</p>
+      ) : null}
+
+      {streaming ? (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+          <LoaderCircle className="size-4 animate-spin text-primary" aria-hidden />
+          {stage ? STAGE_LABELS[stage][lang] : t("thinking", lang)}…
+        </p>
       ) : null}
 
       {message.status === "error" ? (
-        <div role="alert" className="flex items-center gap-2 text-sm text-destructive">
+        <div role="alert" className="flex flex-wrap items-center gap-3 text-sm text-destructive">
           <span>{message.error}</span>
           {onRetry && message.request ? (
             <Button size="sm" variant="outline" disabled={busy} onClick={() => onRetry(message.id)}>
@@ -92,18 +113,32 @@ export function MessageBubble({
       ) : null}
 
       {response?.audio_b64 ? (
-        <audio controls autoPlay src={`data:audio/mpeg;base64,${response.audio_b64}`} className="h-8 w-full" />
+        <audio controls autoPlay src={`data:audio/mpeg;base64,${response.audio_b64}`} className="h-9 w-full max-w-sm" />
       ) : null}
 
       {response ? (
-        <Collapsible open={open ?? false} onOpenChange={setOpen}>
-          <CollapsibleTrigger render={<Button variant="ghost" size="xs" className="w-fit" />}>
-            <ChevronDown className={cn("transition-transform", open && "rotate-180")} /> {t("why", lang)}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2">
-            <TracePanel response={response} lang={lang} />
-          </CollapsibleContent>
-        </Collapsible>
+        <div className="flex items-center gap-1 text-muted-foreground">
+          {!notice ? <CapabilityBadge capability={response.capability} lang={answerLang} /> : null}
+          {onInspect ? (
+            <Button variant="ghost" size="xs" onClick={() => onInspect(message.id)}>
+              <PanelRight /> {t("why", lang)}
+              {sources.length ? ` (${sources.length})` : ""}
+            </Button>
+          ) : null}
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label={t("copy", lang)}
+            onClick={() =>
+              navigator.clipboard?.writeText(response.answer).then(
+                () => toast.success(t("copied", lang)),
+                () => {},
+              )
+            }
+          >
+            <Copy />
+          </Button>
+        </div>
       ) : null}
     </article>
   );

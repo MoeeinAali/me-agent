@@ -20,6 +20,10 @@ export type ChatState = {
   audience: Audience;
   messages: UIMessage[];
   busy: boolean;
+  /** The assistant message whose sources the inspector shows. */
+  selectedId?: string;
+  select: (id: string | undefined) => void;
+  reset: () => void;
   send: (text: string, extras?: { job_url?: string; job_text?: string }) => Promise<void>;
   /** Add a finished exchange produced outside the stream (job PDF upload, voice). */
   addExchange: (question: string, response: ChatResponse) => void;
@@ -60,7 +64,7 @@ export function createChatStore(stream: StreamFn = streamChat) {
                 patch(assistantId, (m) => ({ text: m.text + event.text }));
                 break;
               case "final":
-                set({ conversationId: event.data.conversation_id });
+                set({ conversationId: event.data.conversation_id, selectedId: assistantId });
                 patch(assistantId, () => ({
                   text: event.data.answer,
                   status: "done",
@@ -92,10 +96,16 @@ export function createChatStore(stream: StreamFn = streamChat) {
       messages: [],
       busy: false,
       setAudience: (audience) => set({ audience }),
+      select: (selectedId) => set({ selectedId }),
+      reset: () => {
+        if (get().busy) return;
+        set({ messages: [], conversationId: undefined, selectedId: undefined });
+      },
       async send(text, extras) {
         const request = { message: text, ...extras };
         const assistantId = id();
         set((state) => ({
+          selectedId: assistantId,
           messages: [
             ...state.messages,
             { id: id(), role: "user", text, status: "done", stages: {}, evidence: [] },
@@ -113,13 +123,15 @@ export function createChatStore(stream: StreamFn = streamChat) {
         await run(assistantId, request);
       },
       addExchange(question, response) {
+        const assistantId = id();
         set((state) => ({
+          selectedId: assistantId,
           conversationId: response.conversation_id,
           messages: [
             ...state.messages,
             { id: id(), role: "user", text: question, status: "done", stages: {}, evidence: [] },
             {
-              id: id(),
+              id: assistantId,
               role: "assistant",
               text: response.answer,
               status: "done",

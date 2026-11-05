@@ -48,9 +48,9 @@ describe("Scorecard", () => {
     const { container } = render(<Scorecard scorecard={scorecard} evidence={fixtureResponse({}).evidence} lang="en" />);
     expect(screen.getByText("58%")).toBeInTheDocument();
     expect(screen.getByText("Partial fit")).toBeInTheDocument();
-    expect(screen.getByText("✅")).toBeInTheDocument();
-    expect(screen.getByText("🟡")).toBeInTheDocument();
-    expect(screen.getByText("❌")).toBeInTheDocument();
+    expect(screen.getByText("Matched")).toBeInTheDocument();
+    expect(screen.getByText("Partly")).toBeInTheDocument();
+    expect(screen.getByText("No evidence")).toBeInTheDocument();
     expect(screen.getAllByText("must")).toHaveLength(2);
     expect(screen.getByText("E1")).toBeInTheDocument();
     expect(container.querySelector("[data-slot=scroll-area] table")).not.toBeNull();

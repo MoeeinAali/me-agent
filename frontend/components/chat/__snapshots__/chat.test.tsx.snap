@@ -3,10 +3,30 @@
 exports[`MessageBubble > keeps a mixed Persian/English answer in a dir=auto block 1`] = `
 <article
   aria-busy="false"
-  class="flex min-w-0 flex-col gap-3 border p-3 border-border"
+  aria-label="Agent answer"
+  class="group/answer flex min-w-0 flex-col gap-3 border-s-2 ps-4 transition-colors border-border"
 >
-  <header
-    class="flex items-center gap-2"
+  <div
+    class="flex flex-col gap-3 text-[15px] leading-7"
+    dir="auto"
+  >
+    <p>
+      <span>
+        کامبک با Next.js و Go ساخته شده است (بیش از ۱ میلیون کاربر).
+        <button
+          aria-label="منبع 1"
+          class="mx-0.5 inline-flex h-4 min-w-4 -translate-y-1 items-center justify-center bg-primary/15 px-1 align-baseline font-mono text-[10px] leading-none text-primary tabular-nums transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-1 focus-visible:outline-primary"
+          data-slot="hover-card-trigger"
+          id="base-ui-_r_3_"
+          type="button"
+        >
+          1
+        </button>
+      </span>
+    </p>
+  </div>
+  <div
+    class="flex items-center gap-1 text-muted-foreground"
   >
     <span
       class="group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-none border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3! bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80 font-mono"
@@ -16,27 +36,16 @@ exports[`MessageBubble > keeps a mixed Persian/English answer in a dir=auto bloc
     >
       از رکورد
     </span>
-  </header>
-  <p
-    class="whitespace-pre-wrap text-sm leading-relaxed"
-    dir="auto"
-  >
-    کامبک با Next.js و Go ساخته شده است (بیش از ۱ میلیون کاربر).
-  </p>
-  <div
-    data-closed=""
-    data-slot="collapsible"
-  >
     <button
-      aria-expanded="false"
-      class="group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 h-6 gap-1 rounded-none px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3 w-fit"
-      data-slot="collapsible-trigger"
+      aria-label="Copy answer"
+      class="group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-6 rounded-none [&_svg:not([class*='size-'])]:size-3"
+      data-slot="button"
       tabindex="0"
       type="button"
     >
       <svg
         aria-hidden="true"
-        class="lucide lucide-chevron-down transition-transform"
+        class="lucide lucide-copy"
         fill="none"
         height="24"
         stroke="currentColor"
@@ -47,12 +56,18 @@ exports[`MessageBubble > keeps a mixed Persian/English answer in a dir=auto bloc
         width="24"
         xmlns="http://www.w3.org/2000/svg"
       >
+        <rect
+          height="14"
+          rx="2"
+          ry="2"
+          width="14"
+          x="8"
+          y="8"
+        />
         <path
-          d="m6 9 6 6 6-6"
+          d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
         />
       </svg>
-       
-      Why this answer
     </button>
   </div>
 </article>

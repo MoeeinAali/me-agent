@@ -1,10 +1,11 @@
 "use client";
 
-import { SendHorizontal } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import { cn } from "cn";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Kbd } from "@/components/ui/kbd";
 import type { Lang } from "@/lib/api/types";
 import { t } from "@/lib/i18n";
 
@@ -24,6 +25,7 @@ export function Composer({
   const [text, setText] = useState("");
   const trimmed = text.trim();
   const canSend = !disabled && trimmed.length > 0 && text.length <= MAX_CHARS;
+  const nearLimit = text.length > MAX_CHARS * 0.8;
 
   const submit = () => {
     if (!canSend) return;
@@ -33,20 +35,20 @@ export function Composer({
 
   return (
     <form
-      className="flex flex-col gap-2 border bg-card p-2"
+      className="flex flex-col border bg-card transition-colors focus-within:border-primary/60"
       onSubmit={(e) => {
         e.preventDefault();
         submit();
       }}
     >
-      <Textarea
+      <textarea
         dir="auto"
         aria-label={t("placeholder", lang)}
         placeholder={t("placeholder", lang)}
         value={text}
         maxLength={MAX_CHARS}
-        rows={2}
-        className="max-h-48 resize-none border-0 shadow-none focus-visible:ring-0"
+        rows={1}
+        className="field-sizing-content max-h-52 min-h-12 w-full resize-none bg-transparent px-4 pt-3 pb-1 text-[15px] leading-7 outline-none placeholder:text-muted-foreground"
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -55,13 +57,21 @@ export function Composer({
           }
         }}
       />
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 px-2 pb-2">
         {actions}
-        <span className="ms-auto font-mono text-xs text-muted-foreground" aria-live="polite">
+        <span className="ms-auto hidden items-center gap-1 text-xs text-muted-foreground md:flex">
+          <Kbd>Enter</Kbd> {t("enterHint", lang)}
+          <span className="mx-1" />
+          <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> {t("shiftEnterHint", lang)}
+        </span>
+        <span
+          className={cn("ms-auto ps-3 font-mono text-xs tabular-nums md:ms-0", nearLimit ? "text-primary" : "text-muted-foreground/60")}
+          aria-live="polite"
+        >
           {text.length}/{MAX_CHARS}
         </span>
-        <Button type="submit" size="icon" disabled={!canSend} aria-label={t("send", lang)}>
-          <SendHorizontal />
+        <Button type="submit" size="icon" disabled={!canSend} aria-label={t("send", lang)} className="ms-2">
+          <ArrowUp />
         </Button>
       </div>
     </form>

@@ -61,8 +61,8 @@ describe("MicButton", () => {
     vi.stubGlobal("MediaRecorder", FakeRecorder);
     vi.stubGlobal("navigator", { mediaDevices: { getUserMedia: vi.fn(async () => Promise.reject(new Error("denied"))) } });
     const { post } = renderMic();
-    await userEvent.click(screen.getByRole("button", { name: "Ask by voice" }));
-    expect(toastError).toHaveBeenCalledWith("Microphone access was denied.");
+    await userEvent.click(screen.getByRole("button", { name: /Ask by voice/ }));
+    expect(toastError).toHaveBeenCalledWith(expect.stringContaining("Microphone access was denied."));
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -71,7 +71,7 @@ describe("MicButton", () => {
     vi.stubGlobal("navigator", { mediaDevices: { getUserMedia: vi.fn(async () => stream) } });
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { post, onResponse } = renderMic();
-    await userEvent.click(screen.getByRole("button", { name: "Ask by voice" }));
+    await userEvent.click(screen.getByRole("button", { name: /Ask by voice/ }));
     expect(FakeRecorder.last.options.audioBitsPerSecond).toBe(32_000);
     await act(async () => {
       vi.advanceTimersByTime(MAX_RECORDING_MS);

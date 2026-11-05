@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import type { Evidence } from "@/lib/api/types";
 import { fixtureResponse } from "@/test/fixtures";
-import { ClaimList } from "./ClaimList";
 import { ProofChip } from "./ProofChip";
 import { StageProgress } from "./StageProgress";
 import { TracePanel } from "./TracePanel";
@@ -39,8 +38,8 @@ describe("TracePanel", () => {
     expect(screen.getByText("project_summary")).toBeInTheDocument();
     expect(screen.getByText("answer_from_record")).toBeInTheDocument();
     expect(screen.getByText("projects[comeback].summary", { selector: "li" })).toHaveClass("font-mono");
-    expect(screen.getByText(/github · ok/)).toBeInTheDocument();
-    expect(screen.getByText(/link_check · failed/)).toBeInTheDocument();
+    expect(screen.getByText(/github: ok/)).toBeInTheDocument();
+    expect(screen.getByText(/link_check: failed/)).toBeInTheDocument();
     expect(screen.getByText("employment at Google")).toBeInTheDocument();
   });
 });
@@ -71,16 +70,3 @@ describe("ProofChip", () => {
   });
 });
 
-describe("ClaimList", () => {
-  it("maps evidence ids to chips and skips unknown ids", () => {
-    render(
-      <ClaimList
-        claims={[{ text: "Comeback is a PWA.", evidence: ["E1", "E9"] }]}
-        evidence={[ev({})]}
-        lang="en"
-      />,
-    );
-    expect(screen.getByText("E1")).toBeInTheDocument();
-    expect(screen.queryByText("E9")).not.toBeInTheDocument();
-  });
-});

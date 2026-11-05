@@ -1,13 +1,21 @@
-import { Check, Circle, LoaderCircle } from "lucide-react";
+import { Check, LoaderCircle } from "lucide-react";
+import { cn } from "cn";
 
 import type { StageName } from "@/lib/api/client";
-import { cn } from "cn";
+import type { Lang } from "@/lib/api/types";
+import { STAGE_LABELS } from "@/lib/i18n";
 
 export const STAGES: StageName[] = ["understand", "resolve", "policy", "evidence", "generate", "verify"];
 
-export function StageProgress({ stages }: { stages: Partial<Record<StageName, "start" | "done">> }) {
+export function StageProgress({
+  stages,
+  lang = "en",
+}: {
+  stages: Partial<Record<StageName, "start" | "done">>;
+  lang?: Lang;
+}) {
   return (
-    <ol aria-label="Pipeline stages" className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs">
+    <ol aria-label="Pipeline stages" className="flex flex-col gap-2 text-sm">
       {STAGES.map((name) => {
         const status = stages[name] ?? "pending";
         return (
@@ -15,21 +23,34 @@ export function StageProgress({ stages }: { stages: Partial<Record<StageName, "s
             key={name}
             data-status={status}
             className={cn(
-              "flex items-center gap-1",
-              status === "pending" ? "text-muted-foreground/60" : status === "done" ? "text-foreground" : "text-primary",
+              "flex items-center gap-2.5",
+              status === "pending" ? "text-muted-foreground/50" : "text-foreground",
             )}
           >
-            {status === "done" ? (
-              <Check className="size-3" />
-            ) : status === "start" ? (
-              <LoaderCircle className="size-3 animate-spin" />
-            ) : (
-              <Circle className="size-3" />
-            )}
-            {name}
+            <span
+              aria-hidden
+              className={cn(
+                "flex size-4 shrink-0 items-center justify-center border",
+                status === "done" && "border-primary bg-primary text-primary-foreground",
+                status === "start" && "border-primary text-primary",
+                status === "pending" && "border-border",
+              )}
+            >
+              {status === "done" ? (
+                <Check className="size-3" strokeWidth={3} />
+              ) : status === "start" ? (
+                <LoaderCircle className="size-3 animate-spin" />
+              ) : null}
+            </span>
+            {STAGE_LABELS[name][lang]}
           </li>
         );
       })}
     </ol>
   );
+}
+
+/** The stage currently running (or the last finished one), for a one-line live status. */
+export function currentStage(stages: Partial<Record<StageName, "start" | "done">>): StageName | undefined {
+  return STAGES.findLast((name) => stages[name] === "start") ?? STAGES.findLast((name) => stages[name] === "done");
 }

@@ -135,3 +135,10 @@
     font-family: var(--font-fa);
   }
 }
+
+/* Unlayered so it wins over the font-heading / font-mono utilities. The mono faces have no Persian
+   glyphs and the fallback breaks letter joining; Latin record paths and code stay mono. */
+:lang(fa) :is(.font-heading, [data-slot="badge"], h1, h2, h3, kbd) {
+  font-family: var(--font-fa);
+  letter-spacing: normal;
+}

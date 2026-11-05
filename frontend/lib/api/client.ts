@@ -106,3 +106,13 @@ export async function getSuggestions(audience: Audience, lang: Lang): Promise<st
   const body = await response.json();
   return Array.isArray(body?.suggestions) ? body.suggestions.map(String) : [];
 }
+
+/** True when the API answers /readyz (database up and the record ingested). */
+export async function getReady(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/readyz`, { cache: "no-store" });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}

@@ -1,31 +1,29 @@
 import type { ReactNode } from "react";
 
 import type { ChatResponse, Lang } from "@/lib/api/types";
-import { CAPABILITY_LABELS, t } from "@/lib/i18n";
-import { ClaimList } from "./ClaimList";
+import { t } from "@/lib/i18n";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid gap-1 sm:grid-cols-[9rem_1fr]">
+    <div className="flex flex-col gap-1">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="min-w-0 text-sm">{children}</dd>
     </div>
   );
 }
 
-/** The trace the assignment asks for: intent, fields read, tools, action, missing facts. */
+/** The trace the assignment asks for: intent, action, fields read, tools, and missing facts. */
 export function TracePanel({ response, lang }: { response: ChatResponse; lang: Lang }) {
   const { trace } = response;
   const none = <span className="text-muted-foreground">{t("none", lang)}</span>;
   return (
     <div className="flex flex-col gap-4">
-      <dl className="flex flex-col gap-2">
+      <dl className="flex flex-col gap-3">
         <Row label={t("intent", lang)}>
-          <code className="font-mono">{trace.intent}</code>
+          <code className="font-mono text-xs">{trace.intent}</code>
         </Row>
         <Row label={t("capability", lang)}>
-          <code className="font-mono">{trace.capability}</code>{" "}
-          <span className="text-muted-foreground">({CAPABILITY_LABELS[trace.capability][lang]})</span>
+          <code className="font-mono text-xs">{trace.capability}</code>
         </Row>
         <Row label={t("fields", lang)}>
           {trace.fields_read.length ? (
@@ -45,7 +43,7 @@ export function TracePanel({ response, lang }: { response: ChatResponse; lang: L
             <ul className="flex flex-col gap-0.5">
               {trace.tools_called.map((tool, i) => (
                 <li key={i} className="break-all font-mono text-xs">
-                  {tool.name} · {tool.ok ? "ok" : "failed"} · {tool.latency_ms}ms
+                  {tool.name}: {tool.ok ? "ok" : "failed"}, {tool.latency_ms} ms
                 </li>
               ))}
             </ul>
@@ -65,10 +63,10 @@ export function TracePanel({ response, lang }: { response: ChatResponse; lang: L
           )}
         </Row>
       </dl>
-      <ClaimList claims={response.claims} evidence={response.evidence} lang={lang} />
-      <p className="font-mono text-xs text-muted-foreground">
-        trace {trace.id} · {trace.latency_ms}ms · {trace.tokens_in}+{trace.tokens_out} tokens · prompt{" "}
-        {trace.prompt_version}
+      <p className="break-all font-mono text-[11px] leading-5 text-muted-foreground">
+        trace {trace.id}
+        <br />
+        {trace.latency_ms} ms, {trace.tokens_in} in / {trace.tokens_out} out tokens, prompt {trace.prompt_version}
       </p>
     </div>
   );

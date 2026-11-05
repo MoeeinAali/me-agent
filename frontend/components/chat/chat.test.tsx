@@ -7,7 +7,7 @@ import { fixtureResponse } from "@/test/fixtures";
 import { ClarifyOptions } from "./ClarifyOptions";
 import { Composer, MAX_CHARS } from "./Composer";
 import { MessageBubble } from "./MessageBubble";
-import { Suggestions } from "./Suggestions";
+import { Welcome } from "./Welcome";
 
 const assistant = (overrides: Partial<UIMessage>): UIMessage => ({
   id: "a1",
@@ -23,7 +23,7 @@ describe("MessageBubble", () => {
   it("renders dir=auto and the capability badge label", () => {
     const response = fixtureResponse({ answer: "That isn't published.", capability: "refuse_unpublished" });
     render(<MessageBubble message={assistant({ text: response.answer, response })} lang="en" />);
-    expect(screen.getByText("That isn't published.")).toHaveAttribute("dir", "auto");
+    expect(screen.getByText("That isn't published.").closest("[dir=auto]")).not.toBeNull();
     expect(screen.getByText("Not published")).toBeInTheDocument();
   });
 
@@ -32,7 +32,7 @@ describe("MessageBubble", () => {
     const response = fixtureResponse({ answer: text });
     response.trace.language = "fa";
     const { container } = render(<MessageBubble message={assistant({ text, response })} lang="en" />);
-    expect(screen.getByText(text)).toHaveAttribute("dir", "auto");
+    expect(screen.getByText(text).closest("[dir=auto]")).not.toBeNull();
     expect(screen.getByText("از رکورد")).toBeInTheDocument();
     expect(container.querySelector("article")).toMatchSnapshot();
   });
@@ -47,7 +47,7 @@ describe("MessageBubble", () => {
       />,
     );
     expect(screen.getByRole("alert")).toHaveTextContent("Stopped.");
-    await userEvent.click(screen.getByRole("button", { name: /retry/i }));
+    await userEvent.click(screen.getByRole("button", { name: /try again/i }));
     expect(onRetry).toHaveBeenCalledWith("a1");
   });
 
@@ -57,6 +57,23 @@ describe("MessageBubble", () => {
     render(<MessageBubble message={assistant({ text: "Which one?", response })} lang="en" onSend={send} />);
     await userEvent.click(screen.getByRole("button", { name: "Comeback" }));
     expect(send).toHaveBeenCalledWith("Comeback");
+  });
+});
+
+describe("AnswerBody citations", () => {
+  it("puts a numbered source marker after each claim", async () => {
+    const onInspect = vi.fn();
+    const response = fixtureResponse({ answer: "Comeback is a PWA. It serves 1M users." });
+    response.claims = [
+      { text: "Comeback is a PWA.", evidence: ["E1"] },
+      { text: "It serves 1M users.", evidence: ["E1", "E7"] },
+    ];
+    render(<MessageBubble message={assistant({ text: response.answer, response })} lang="en" onInspect={onInspect} />);
+    const markers = screen.getAllByRole("button", { name: "Source 1" });
+    expect(markers).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "Source 2" })).not.toBeInTheDocument();
+    await userEvent.click(markers[0]);
+    expect(onInspect).toHaveBeenCalledWith("a1", 1);
   });
 });
 
@@ -82,7 +99,7 @@ describe("Composer", () => {
     expect(box).toHaveValue("");
   });
 
-  it("is disabled while streaming", async () => {
+  it("is disabled while an answer is streaming", async () => {
     const submit = vi.fn();
     render(<Composer onSubmit={submit} lang="en" disabled />);
     await userEvent.type(screen.getByRole("textbox"), "hi{Enter}");
@@ -99,11 +116,26 @@ describe("Composer", () => {
   });
 });
 
-describe("Suggestions", () => {
-  it("shows only when there are no messages", () => {
-    const { rerender } = render(<Suggestions suggestions={["Summarize Comeback"]} visible onPick={() => {}} />);
-    expect(screen.getByText("Summarize Comeback")).toBeInTheDocument();
-    rerender(<Suggestions suggestions={["Summarize Comeback"]} visible={false} onPick={() => {}} />);
-    expect(screen.queryByText("Summarize Comeback")).not.toBeInTheDocument();
+describe("Welcome", () => {
+  it("lists suggestions, sets the audience, and opens the job check", async () => {
+    const pick = vi.fn();
+    const onAudience = vi.fn();
+    const onJob = vi.fn();
+    render(
+      <Welcome
+        lang="en"
+        audience="general"
+        onAudience={onAudience}
+        suggestions={["Summarize Comeback"]}
+        onPick={pick}
+        onJob={onJob}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Summarize Comeback" }));
+    expect(pick).toHaveBeenCalledWith("Summarize Comeback");
+    await userEvent.click(screen.getByRole("button", { name: "Recruiter" }));
+    expect(onAudience).toHaveBeenCalledWith("recruiter");
+    await userEvent.click(screen.getByRole("button", { name: /Check fit for a job/ }));
+    expect(onJob).toHaveBeenCalled();
   });
 });
