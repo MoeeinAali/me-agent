@@ -141,12 +141,15 @@ DATABASE_URL=postgresql+asyncpg://me_agent:<db password>@<db internal address>:5
 LLM_API_KEY=<GapGPT key>
 CORS_ORIGINS=["https://<WEB>"]
 RATE_LIMIT_CLIENT_HEADER=x-real-ip
+RATE_LIMIT_TRUSTED_PROXIES=["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16"]
 ```
 
 - `CORS_ORIGINS` is a JSON list. Type it exactly like that, with the double quotes and no outer
   quotes.
 - `RATE_LIMIT_CLIENT_HEADER=x-real-ip`: Darkube passes the visitor's IP in `X-Real-Ip`, so the
   limit (30 questions a minute) applies per visitor, not to the whole ingress.
+- `RATE_LIMIT_TRUSTED_PROXIES`: the header is honoured only when it comes from the cluster's
+  private ingress addresses, so nobody can fake it to dodge the limit.
 - The first start embeds the record (416 chunks) through GapGPT, which takes about 10–30
   seconds. `/readyz` turns 200 when that is done.
 - Later restarts embed only what changed.

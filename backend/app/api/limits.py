@@ -1,6 +1,7 @@
 """Reject oversized request bodies before anything parses them (JSON or multipart)."""
 
 from contextlib import suppress
+from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
@@ -74,16 +75,31 @@ class BodySizeLimit:
         await send({"type": "http.response.body", "body": body})
 
 
+def _ip(value: str) -> IPv4Address | IPv6Address | None:
+    try:
+        return ip_address(value)
+    except ValueError:
+        return None
+
+
 class RateLimit:
     """Per-client-IP moving-window limit for every route, including mounted apps (MCP).
 
     The client IP comes from the ASGI scope, which uvicorn fills from X-Forwarded-For only for
-    trusted proxies (FORWARDED_ALLOW_IPS). Health checks are exempt.
+    trusted proxies (FORWARDED_ALLOW_IPS). Behind a CDN or ingress that puts the visitor's IP in a
+    header (``client_header``), that header is used only when the immediate sender is one of
+    ``trusted_proxies``; anyone else could set it to dodge the limit. Health checks are exempt.
     """
 
     EXEMPT = frozenset({"/healthz", "/readyz"})
 
-    def __init__(self, app: ASGIApp, limit: str, client_header: str | None = None) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        limit: str,
+        client_header: str | None = None,
+        trusted_proxies: list[str] | None = None,
+    ) -> None:
         from limits import parse
         from limits.aio.storage import MemoryStorage
         from limits.aio.strategies import MovingWindowRateLimiter
@@ -91,7 +107,12 @@ class RateLimit:
         self.app = app
         self.item = parse(limit)
         self.client_header = client_header.lower().encode() if client_header else None
+        self.trusted = [ip_network(cidr, strict=False) for cidr in trusted_proxies or []]
         self.limiter = MovingWindowRateLimiter(MemoryStorage())
+
+    def _trusted(self, peer: str) -> bool:
+        address = _ip(peer)
+        return address is not None and any(address in network for network in self.trusted)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or scope["path"] in self.EXEMPT:
@@ -99,7 +120,7 @@ class RateLimit:
             return
         client = scope.get("client")
         key = client[0] if client else "unknown"
-        if self.client_header:
+        if self.client_header and self._trusted(key):
             for name, value in scope.get("headers", []):
                 if name == self.client_header and value:
                     key = value.decode("latin-1").strip()

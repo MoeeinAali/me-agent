@@ -52,7 +52,10 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(
-        RateLimit, limit=settings.rate_limit, client_header=settings.rate_limit_client_header
+        RateLimit,
+        limit=settings.rate_limit,
+        client_header=settings.rate_limit_client_header,
+        trusted_proxies=settings.rate_limit_trusted_proxies,
     )
     app.add_middleware(
         BodySizeLimit,

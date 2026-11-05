@@ -26,6 +26,7 @@ Step-by-step for Hamravesh (Darkube) and the personal k3s cluster: [`DEPLOY.md`]
 | `LLM_API_KEY` | api | GapGPT key (secret) |
 | `CORS_ORIGINS` | api | JSON list of web origins, e.g. `["https://agent.example"]` |
 | `RATE_LIMIT_CLIENT_HEADER` | api | Header with the visitor IP behind a proxy/CDN (`x-real-ip` on Darkube, `cf-connecting-ip` behind Cloudflare) |
+| `RATE_LIMIT_TRUSTED_PROXIES` | api | JSON list of CIDRs allowed to set that header (the ingress or CDN); from anyone else it is ignored |
 | `API_BASE_URL` | web | Public API address the browser calls; read at runtime |
 
 ## Use it from an AI assistant (MCP)

@@ -39,10 +39,12 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:3000"]
     rate_limit: str = "30/minute"
-    # Behind a CDN every visitor arrives from a handful of edge IPs. Name the header the CDN puts
-    # the visitor's IP in (Cloudflare: cf-connecting-ip) to rate-limit per visitor instead. Only
-    # set it when the API is reachable through that CDN alone, or clients could spoof it.
+    # Behind a CDN or ingress every visitor arrives from a handful of proxy IPs. Name the header
+    # the proxy puts the visitor's IP in (Cloudflare: cf-connecting-ip, ingress-nginx: x-real-ip)
+    # to rate-limit per visitor. It is honoured only from the proxies listed here (CIDRs), so a
+    # client that bypasses the proxy can't set it.
     rate_limit_client_header: str | None = None
+    rate_limit_trusted_proxies: list[str] = []
 
     max_message_chars: int = 2000
     max_job_chars: int = 20_000
