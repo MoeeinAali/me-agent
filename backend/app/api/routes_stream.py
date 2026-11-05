@@ -11,6 +11,7 @@ from collections.abc import AsyncIterator
 from typing import Annotated, Any
 
 import httpx
+import openai
 import structlog
 from fastapi import APIRouter, Depends
 from sse_starlette import EventSourceResponse, ServerSentEvent
@@ -19,7 +20,7 @@ from app.api.deps import SessionFactory, build_deps, get_http, get_record, get_s
 from app.config import Settings, get_settings
 from app.domain import ChatRequest
 from app.jobs.base import JobFetchError, JobInputError
-from app.llm.client import LLM, get_llm
+from app.llm.client import LLM, LLM_UNAVAILABLE, get_llm
 from app.pipeline.jobfit import job_fit_handler
 from app.pipeline.run import run_chat
 from app.record.schema import Record
@@ -63,6 +64,9 @@ async def chat_stream(
             await emit("final", response.model_dump(mode="json"))
         except (JobInputError, JobFetchError) as exc:
             await emit("error", {"message": str(exc)})
+        except openai.APIError as exc:
+            log.error("llm_unavailable", error=type(exc).__name__, detail=str(exc)[:300])
+            await emit("error", {"message": LLM_UNAVAILABLE})
         except Exception:
             log.exception("stream_failed")
             await emit("error", {"message": "Something went wrong while answering. Please retry."})

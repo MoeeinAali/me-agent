@@ -36,3 +36,19 @@ async def test_health_checks_are_not_limited(limited: httpx.AsyncClient) -> None
     async with limited as client:
         codes = [(await client.get("/healthz")).status_code for _ in range(5)]
     assert codes == [200] * 5
+
+
+async def test_rate_limit_can_key_on_a_cdn_client_header(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RATE_LIMIT", "2/minute")
+    monkeypatch.setenv("RATE_LIMIT_CLIENT_HEADER", "cf-connecting-ip")
+    app = create_app()
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+
+        async def get(ip: str) -> int:
+            return (await client.get("/v1/limits", headers={"cf-connecting-ip": ip})).status_code
+
+        codes_a = [await get("1.1.1.1") for _ in range(3)]
+        assert codes_a[-1] == 429
+        assert await get("2.2.2.2") == 200  # another visitor behind the same edge

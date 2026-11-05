@@ -5,6 +5,7 @@ import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
+import openai
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +23,7 @@ from app.api.deps import close_http
 from app.api.limits import UPLOAD_OVERHEAD, BodySizeLimit, RateLimit
 from app.config import get_settings
 from app.jobs.base import JobFetchError, JobInputError
+from app.llm.client import LLM_UNAVAILABLE
 from app.logging import configure_logging
 from app.mcp_server import build_mcp
 
@@ -49,7 +51,9 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.add_middleware(RateLimit, limit=settings.rate_limit)
+    app.add_middleware(
+        RateLimit, limit=settings.rate_limit, client_header=settings.rate_limit_client_header
+    )
     app.add_middleware(
         BodySizeLimit,
         limits={
@@ -96,6 +100,11 @@ def create_app() -> FastAPI:
             status_code=502,
             content={"detail": f"{exc}. Please paste the job description text instead."},
         )
+
+    @app.exception_handler(openai.APIError)
+    async def llm_unavailable(_request: Request, exc: openai.APIError) -> JSONResponse:
+        log.error("llm_unavailable", error=type(exc).__name__, detail=str(exc)[:300])
+        return JSONResponse(status_code=503, content={"detail": LLM_UNAVAILABLE})
 
     app.state.mcp = mcp
     app.mount("/mcp", mcp_app)

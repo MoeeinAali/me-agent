@@ -117,3 +117,15 @@ def test_unicode_line_separators_cannot_forge_lines() -> None:
     assert [line for line in text.splitlines() if line.startswith("Capability:")] == [
         "Capability: clarify"
     ]
+
+
+def test_format_trace_ends_with_the_trace_id() -> None:
+    data = {
+        "id": "6ef49a2a-85d7-4279-b8b1-69111e04772b",
+        "question": "Did he work at Google?",
+        "intent": "fact_lookup",
+        "fields_read": [],
+        "capability": "refuse_unpublished",
+        "answer": "That isn't in Moeein's published record.",
+    }
+    assert format_trace(data).endswith("Trace id: 6ef49a2a-85d7-4279-b8b1-69111e04772b")

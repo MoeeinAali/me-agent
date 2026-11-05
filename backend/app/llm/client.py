@@ -21,6 +21,11 @@ T = TypeVar("T", bound=BaseModel)
 EMBED_BATCH = 96
 
 
+LLM_UNAVAILABLE = (
+    "The AI service behind this page is unavailable right now. Please try again in a few minutes."
+)
+
+
 @dataclass(frozen=True)
 class Usage:
     tokens_in: int = 0

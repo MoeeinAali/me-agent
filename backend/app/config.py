@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # The hrcando career-page web app ships this key to every visitor's browser; it is not a secret.
@@ -39,12 +39,22 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:3000"]
     rate_limit: str = "30/minute"
+    # Behind a CDN every visitor arrives from a handful of edge IPs. Name the header the CDN puts
+    # the visitor's IP in (Cloudflare: cf-connecting-ip) to rate-limit per visitor instead. Only
+    # set it when the API is reachable through that CDN alone, or clients could spoof it.
+    rate_limit_client_header: str | None = None
 
     max_message_chars: int = 2000
     max_job_chars: int = 20_000
     max_pdf_bytes: int = 2_000_000
     max_audio_bytes: int = 10_000_000
     max_audio_seconds: int = 60
+
+    @field_validator("hrcando_career_auth_key", mode="before")
+    @classmethod
+    def _keep_public_key_when_blank(cls, value: object) -> object:
+        """A blank HRCANDO_CAREER_AUTH_KEY= line in .env must not wipe the built-in key."""
+        return value or _HRCANDO_PUBLIC_CAREER_AUTH_KEY
 
     @property
     def record_path(self) -> Path:

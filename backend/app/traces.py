@@ -31,6 +31,8 @@ def _format(data: dict[str, Any]) -> str:
         lines.append(f"Missing: {', '.join(one_line(m) for m in data['missing'])}")
     answer = indented(data["answer"], "        ")
     lines.append(f"Answer: {answer}")
+    if data.get("id"):
+        lines.append(f"Trace id: {one_line(str(data['id']))}")
     return "\n".join(lines)
 
 

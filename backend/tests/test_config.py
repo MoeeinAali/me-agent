@@ -22,3 +22,12 @@ def test_settings_cors_from_json_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setenv("CORS_ORIGINS", '["https://a.example","https://b.example"]')
     assert get_settings().cors_origins == ["https://a.example", "https://b.example"]
+
+
+def test_blank_hrcando_key_keeps_the_public_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config import _HRCANDO_PUBLIC_CAREER_AUTH_KEY, get_settings
+
+    monkeypatch.setenv("DATABASE_URL", "x")
+    monkeypatch.setenv("LLM_API_KEY", "k")
+    monkeypatch.setenv("HRCANDO_CAREER_AUTH_KEY", "")
+    assert get_settings().hrcando_career_auth_key == _HRCANDO_PUBLIC_CAREER_AUTH_KEY

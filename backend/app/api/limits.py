@@ -83,13 +83,14 @@ class RateLimit:
 
     EXEMPT = frozenset({"/healthz", "/readyz"})
 
-    def __init__(self, app: ASGIApp, limit: str) -> None:
+    def __init__(self, app: ASGIApp, limit: str, client_header: str | None = None) -> None:
         from limits import parse
         from limits.aio.storage import MemoryStorage
         from limits.aio.strategies import MovingWindowRateLimiter
 
         self.app = app
         self.item = parse(limit)
+        self.client_header = client_header.lower().encode() if client_header else None
         self.limiter = MovingWindowRateLimiter(MemoryStorage())
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -98,6 +99,11 @@ class RateLimit:
             return
         client = scope.get("client")
         key = client[0] if client else "unknown"
+        if self.client_header:
+            for name, value in scope.get("headers", []):
+                if name == self.client_header and value:
+                    key = value.decode("latin-1").strip()
+                    break
         if await self.limiter.hit(self.item, key):
             await self.app(scope, receive, send)
             return
