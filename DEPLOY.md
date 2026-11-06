@@ -239,7 +239,7 @@ Each prints the trace in the assignment's format:
 - tools and missing facts, when there are any;
 - the answer and the trace id.
 
-Paste them into `docs/report.md` section 7, replacing the local ones.
+Paste them into `report/report.md` section 7, replacing the local ones.
 
 Then edit section 1:
 - the public address (`https://<WEB>`);
@@ -258,12 +258,12 @@ kubectl exec -it <me-agent-api pod> -- me-agent traces --capability clarify --li
 
 ## 7. Submit
 
-- [ ] Public address `https://<WEB>`, plus the steps (section 1 of `docs/report.md`, or this
+- [ ] Public address `https://<WEB>`, plus the steps (section 1 of `report/report.md`, or this
   file).
 - [ ] The JSON:
   - `data/record.schema.json`: the schema. Each field's `x-visibility` marks what visitors see.
   - `data/record.json`: the filled record, with courses, projects, and limits.
-- [ ] `docs/report.md` with the three live traces.
+- [ ] `report/report.md` with the three live traces.
 
 ## 8. Optional: the k3s mirror (agent.moeein.me)
 
