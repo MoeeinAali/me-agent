@@ -1,5 +1,6 @@
 """Step ⑥: keep only what the evidence supports, then choose the capability in code."""
 
+import re
 from dataclasses import dataclass, field
 from html import unescape
 
@@ -9,6 +10,8 @@ from app.pipeline.policy import PolicyDecision
 
 REGENERATE_ABOVE = 0.30
 _API_SOURCES = {"github", "hrcando", "link_check"}
+# Evidence ids the model sometimes writes into the prose, e.g. "[E1, E5]"; citations are structured.
+_INLINE_IDS = re.compile(r"\s*\[\s*[EJ]\d+(?:\s*,\s*[EJ]\d+)*\s*\]")
 
 
 MISSING_ITEM_CHARS = 80
@@ -41,7 +44,7 @@ def verify(out: GenerationOut, evidence: list[Evidence]) -> VerifyResult:
         if cited:
             # Evidence reaches the model HTML-escaped (it sits inside <item> tags); a claim that
             # copies "&amp;" must still read as "&".
-            text = unescape(claim.text)
+            text = _INLINE_IDS.sub("", unescape(claim.text)).strip()
             kept.append(claim.model_copy(update={"text": text, "evidence": cited}))
         else:
             dropped.append(claim)

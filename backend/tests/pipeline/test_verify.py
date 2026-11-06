@@ -92,3 +92,10 @@ def test_verify_unescapes_html_entities_copied_from_evidence() -> None:
         out(Claim(text="Mark Richards &amp; Neal Ford wrote it.", evidence=["E1"])), [ev("E1")]
     )
     assert result.claims_kept[0].text == "Mark Richards & Neal Ford wrote it."
+
+
+def test_verify_strips_evidence_ids_written_into_the_prose() -> None:
+    result = verify(
+        out(Claim(text="It uses Go. [E1, E5] Fast too [J2].", evidence=["E1"])), [ev("E1")]
+    )
+    assert result.claims_kept[0].text == "It uses Go. Fast too."
